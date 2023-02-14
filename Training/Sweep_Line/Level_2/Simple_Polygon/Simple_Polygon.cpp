@@ -1,4 +1,4 @@
-// Problem: https://codeforces.com/gym/100486
+// https://codeforces.com/gym/100486/submit
 
 #include <bits/stdc++.h>
 #include <ext/pb_ds/assoc_container.hpp>
@@ -29,15 +29,9 @@ struct point {
 
     ll det(point p) { return (ll)x * p.y - (ll)y * p.x; }
 
-    int ccw(point pa, point pb) {
-        ll c = (pa - *this).det(pb - *this);
-        return sign(c);
-    }
+    int ccw(point pa, point pb) { return sign((pa - *this).det(pb - *this)); }
 
-    bool on(point pa, point pb) {
-        if (ccw(pa, pb) != 0) { return false; }
-        return (pa - *this) * (pb - *this) < 0;
-    }
+    bool on(point pa, point pb) { return ccw(pa, pb) != 0 ? false : (pa - *this) * (pb - *this) < 0; }
 };
 
 struct line {
@@ -167,12 +161,7 @@ void Solve() {
             }
         }
 
-        if (chk) {
-            cout << "YES\n";
-        }
-        else {
-            cout << "NO\n";
-        }
+        cout << chk ? "YES\n" : "NO\n";
     }
 }
 

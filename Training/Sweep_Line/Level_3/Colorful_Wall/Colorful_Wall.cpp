@@ -1,4 +1,4 @@
-// Problem: https://codeforces.com/gym/103443/problem/F
+// https://codeforces.com/gym/103443/submit
 
 #include <bits/stdc++.h>
 

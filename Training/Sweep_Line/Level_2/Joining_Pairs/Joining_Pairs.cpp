@@ -1,4 +1,4 @@
-// Problem: https://codeforces.com/gym/103640/problem/J
+// https://codeforces.com/gym/103640/submit
 
 #include <bits/stdc++.h>
 #include <ext/pb_ds/assoc_container.hpp>
@@ -23,10 +23,7 @@ struct point {
 
     ll det(point p) { return (ll)x * p.y - (ll)y * p.x; }
 
-    int ccw(point pa, point pb) {
-        ll c = (pa - *this).det(pb - *this);
-        return sign(c);
-    }
+    int ccw(point pa, point pb) { return sign((pa - *this).det(pb - *this)); }
 };
 
 struct line {
@@ -140,12 +137,7 @@ void Solve() {
         }
     }
 
-    if (chk) {
-        cout << "Y";
-    }
-    else {
-        cout << "N";
-    }
+    cout << chk ? "Y" : "N";
 }
 
 int main() {

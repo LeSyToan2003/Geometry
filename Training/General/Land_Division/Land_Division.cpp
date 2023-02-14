@@ -1,4 +1,4 @@
-// Problem: http://oj.husc.edu.vn/
+// http://oj.husc.edu.vn/
 
 #include <bits/stdc++.h>
 

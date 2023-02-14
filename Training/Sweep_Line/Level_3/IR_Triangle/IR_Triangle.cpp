@@ -1,4 +1,4 @@
-// Problem: http://oj.husc.edu.vn/
+// http://oj.husc.edu.vn/
 
 #include <bits/stdc++.h>
 
@@ -20,16 +20,9 @@ struct point {
 
     ll det(point p) { return (ll)x * p.y - (ll)y * p.x; }
 
-    int ccw(point pa, point pb) {
-        ll c = (pa - *this).det(pb - *this);
-        return sign(c);
-    }
+    int ccw(point pa, point pb) { return sign((pa - *this).det(pb - *this)); }
 
-    int on(point pa, point pb) {
-        if (ccw(pa, pb) != 0) { return 0; }
-        if ((*this - pa) * (*this - pb) <= 0) { return 1; }
-        return (pb - pa) * (*this - pa) < 0 ? 3 : 2;
-    }
+    bool on(point pa, point pb) { return ccw(pa, pb) != 0 ? false : (pa - *this) * (pb - *this) < 0; }
 
     int inp(vector <point> &p) {
         int n = p.size(), cnt = 0;
@@ -37,15 +30,9 @@ struct point {
             int ii = (i + 1) % n;
             if (on(p[i], p[ii]) == 1) { return 2; }
             point u = p[i], v = p[ii];
-            if (u.y < v.y) {
-                swap(u, v);
-            }
-            if (y <= v.y || y > u.y) {
-                continue;
-            }
-            if (u.ccw(*this, v) == 1) {
-                cnt ^= 1;
-            }
+            if (u.y < v.y) { swap(u, v); }
+            if (y <= v.y || y > u.y) { continue; }
+            if (u.ccw(*this, v) == 1) { cnt ^= 1; }
         }
         return cnt;
     }
@@ -58,42 +45,24 @@ struct line {
     line(point pa, point pb) { M = pa, N = pb; }
 
     bool its(line l) {
-        if (M.on(l.M, l.N) == 1 || N.on(l.M, l.N) == 1 || l.M.on(M, N) == 1 || l.N.on(M, N) == 1) {
-            return true;
-        }
+        if (M.on(l.M, l.N) == 1 || N.on(l.M, l.N) == 1 || l.M.on(M, N) == 1 || l.N.on(M, N) == 1) { return true; }
         return M.ccw(l.M, l.N) * N.ccw(l.M, l.N) < 0 && l.M.ccw(M, N) * l.N.ccw(M, N) < 0;
     }
 
-    point its1(line l) {
-        return point(M.x, l.M.y - (M.x - l.M.x));
-    }
+    point its1(line l) { return point(M.x, l.M.y - (M.x - l.M.x)); }
 
-    point its2(line l) {
-        return point(l.M.x + (l.M.y - M.y), M.y);
-    }
+    point its2(line l) { return point(l.M.x + (l.M.y - M.y), M.y); }
 };
 
 line lc;
 bool operator < (line la, line lb) {
     int ya, yb;
-    if (la.M.y == la.N.y) {
-        ya = la.M.y;
-    }
-    else {
-        ya = lc.its1(la).y;
-    }
-    if (lb.M.y == lb.N.y) {
-        yb = lb.M.y;
-    }
-    else {
-        yb = lc.its1(lb).y;
-    }
-    if (ya != yb) {
-        return ya < yb;
-    }
-    if (la.M.y == la.N.y) {
-        return false;
-    }
+    if (la.M.y == la.N.y) { ya = la.M.y; }
+    else { ya = lc.its1(la).y; }
+    if (lb.M.y == lb.N.y) { yb = lb.M.y; }
+    else { yb = lc.its1(lb).y; }
+    if (ya != yb) { return ya < yb; }
+    if (la.M.y == la.N.y) { return false; }
     return true;
 }
 

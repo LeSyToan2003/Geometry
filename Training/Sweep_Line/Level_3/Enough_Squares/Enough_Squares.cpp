@@ -1,4 +1,4 @@
-// Problem: https://codeforces.com/gym/103577/problem/J
+// https://codeforces.com/gym/103577/submit
 
 #include <bits/stdc++.h>
 
@@ -99,8 +99,8 @@ void Solve() {
 					pc.ymin = min(a * (x - 0.5) + b, a * (x + 0.5) + b);
 					pc.ymax = max(a * (x - 0.5) + b, a * (x + 0.5) + b);
 					Killer(pc.ymin);
-                    Killer(pc.ymax);
-                    bool chk = false;
+					Killer(pc.ymax);
+					bool chk = false;
 					if ((!p[pre].ccw(pa, pb) && !p[i].ccw(pa, pb)) || (!p[nxt].ccw(pa, pb) && !p[nxt2].ccw(pa, pb))) {
 						if (pc == p[i]) {
 							if (p[pre].ccw(p[i], p[nxt]) > 0) {
@@ -128,7 +128,7 @@ void Solve() {
 					}
 					if (chk) {
                         points.push_back(pc);
-					}
+                    }
 				}
 			}
 		}
@@ -143,8 +143,9 @@ void Solve() {
 			if (st.size()) {
 				auto it = st.end();
 				it--;
-				if (dow <= *it)
+				if (dow <= *it) {
 					dow = *it + 1;
+				}
 			}
 			if (dow <= upp) {
 				curr += upp - dow + 1;
