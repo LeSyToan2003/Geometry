@@ -122,7 +122,7 @@ void Solve() {
 					else {
 						chk = true;
 					}
-					if (chk) {
+                    if (chk) {
                         points.push_back(pc);
 					}
 				}
