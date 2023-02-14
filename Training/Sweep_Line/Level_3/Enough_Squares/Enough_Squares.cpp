@@ -122,8 +122,8 @@ void Solve() {
 					else {
 						chk = true;
 					}
-                    if (chk) {
-                        points.push_back(pc);
+					if (chk) {
+						points.push_back(pc);
 					}
 				}
 			}
