@@ -66,12 +66,8 @@ db Area(vector <point> &p) {
 }
 
 void Killer(db &a) {
-    if (eq(a, (int)a)) {
-        a = (int)a;
-    }
-    if (eq(a, ceil(a))) {
-        a = ceil(a);
-    }
+    if (eq(a, (int)a)) { a = (int)a; }
+    if (eq(a, ceil(a))) { a = ceil(a); }
 }
 
 void Solve() {
@@ -128,7 +124,7 @@ void Solve() {
 					}
 					if (chk) {
                         points.push_back(pc);
-                    }
+					}
 				}
 			}
 		}
