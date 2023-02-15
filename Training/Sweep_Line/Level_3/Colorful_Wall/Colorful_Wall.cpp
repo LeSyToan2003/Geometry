@@ -1,5 +1,3 @@
-// https://codeforces.com/gym/103443/submit
-
 #include <bits/stdc++.h>
 
 using namespace std;

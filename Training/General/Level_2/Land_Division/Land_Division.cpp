@@ -1,5 +1,3 @@
-// http://oj.husc.edu.vn/
-
 #include <bits/stdc++.h>
 
 using namespace std;

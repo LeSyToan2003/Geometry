@@ -1,5 +1,3 @@
-// https://oj.vnoi.info/problem/area/submit
-
 #include <bits/stdc++.h>
 
 using namespace std;
