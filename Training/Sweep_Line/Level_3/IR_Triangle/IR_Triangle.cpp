@@ -1,5 +1,3 @@
-// http://oj.husc.edu.vn/
-
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -21,7 +19,6 @@ struct point {
     ll det(point p) { return (ll)x * p.y - (ll)y * p.x; }
 
     int ccw(point pa, point pb) { return sign((pa - *this).det(pb - *this)); }
-
     bool on(point pa, point pb) { return ccw(pa, pb) != 0 ? false : (pa - *this) * (pb - *this) < 0; }
 
     int inp(vector <point> &p) {
@@ -48,22 +45,18 @@ struct line {
         if (M.on(l.M, l.N) == 1 || N.on(l.M, l.N) == 1 || l.M.on(M, N) == 1 || l.N.on(M, N) == 1) { return true; }
         return M.ccw(l.M, l.N) * N.ccw(l.M, l.N) < 0 && l.M.ccw(M, N) * l.N.ccw(M, N) < 0;
     }
-
-    point its1(line l) { return point(M.x, l.M.y - (M.x - l.M.x)); }
-
-    point its2(line l) { return point(l.M.x + (l.M.y - M.y), M.y); }
+    point pits1(line l) { return point(M.x, l.M.y - (M.x - l.M.x)); }
+    point pits2(line l) { return point(l.M.x + (l.M.y - M.y), M.y); }
 };
 
 line lc;
 bool operator < (line la, line lb) {
     int ya, yb;
     if (la.M.y == la.N.y) { ya = la.M.y; }
-    else { ya = lc.its1(la).y; }
+    else { ya = lc.pits1(la).y; }
     if (lb.M.y == lb.N.y) { yb = lb.M.y; }
-    else { yb = lc.its1(lb).y; }
-    if (ya != yb) { return ya < yb; }
-    if (la.M.y == la.N.y) { return false; }
-    return true;
+    else { yb = lc.pits1(lb).y; }
+    return ya != yb ? ya < yb : la.M.y != la.N.y;
 }
 
 int n;
@@ -114,16 +107,16 @@ void Solve() {
     for (int i = 0; i < n - 1; ++i) {
         for (int j = i + 1; j < n; ++j) {
             if (line(tri[i][0], tri[i][1]).its(line(tri[j][1], tri[j][2]))) {
-                st.insert(line(tri[i][0], tri[i][1]).its1(line(tri[j][1], tri[j][2])).x);
+                st.insert(line(tri[i][0], tri[i][1]).pits1(line(tri[j][1], tri[j][2])).x);
             }
             if (line(tri[i][2], tri[i][0]).its(line(tri[j][1], tri[j][2]))) {
-                st.insert(line(tri[i][2], tri[i][0]).its2(line(tri[j][1], tri[j][2])).x);
+                st.insert(line(tri[i][2], tri[i][0]).pits2(line(tri[j][1], tri[j][2])).x);
             }
             if (line(tri[j][0], tri[j][1]).its(line(tri[i][1], tri[i][2]))) {
-                st.insert(line(tri[j][0], tri[j][1]).its1(line(tri[i][1], tri[i][2])).x);
+                st.insert(line(tri[j][0], tri[j][1]).pits1(line(tri[i][1], tri[i][2])).x);
             }
             if (line(tri[j][2], tri[j][0]).its(line(tri[i][1], tri[i][2]))) {
-                st.insert(line(tri[j][2], tri[j][0]).its2(line(tri[i][1], tri[i][2])).x);
+                st.insert(line(tri[j][2], tri[j][0]).pits2(line(tri[i][1], tri[i][2])).x);
             }
         }
     }
@@ -148,7 +141,6 @@ void Solve() {
         }
         lc = la;
         sort(l.begin(), l.end());
-
         for (int j = l.size() - 1; j >= 0; --j) {
             line upp = l[j];
             int cnt = 0;
@@ -165,7 +157,7 @@ void Solve() {
                 j--;
             }
             line dow = l[j];
-            point p = la.its1(upp), q = lb.its1(upp);
+            point p = la.pits1(upp), q = lb.pits1(upp);
             area += (db)x * (q.y - dow.M.y) + (db)x * (p.y - q.y) / 2;
         }
     }
