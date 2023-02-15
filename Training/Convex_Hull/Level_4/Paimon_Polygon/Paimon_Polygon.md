@@ -1,0 +1,1 @@
+https://codeforces.com/gym/103470/problem/F
