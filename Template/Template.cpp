@@ -1,6 +1,9 @@
 #include <bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
 
 using namespace std;
+using namespace __gnu_pbds;
 
 typedef long long ll;
 typedef double db;
@@ -9,6 +12,7 @@ typedef long double ld;
 const ll mod = 1e9 + 7;
 const db eps = 1e-9;
 const db pi = acos(- 1);
+tree <event, null_type, less<event>, rb_tree_tag, tree_order_statistics_node_update> Tree;
 
 bool eq(db a, db b) { return abs(a - b) <= eps; }
 bool lt(db a, db b) { return a < b - eps; }
