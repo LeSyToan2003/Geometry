@@ -187,7 +187,7 @@ struct circle {
         db x1 = l / d * (c.I.x - I.x) + h / d * (c.I.y - I.y) + I.x, y1 = l / d * (c.I.y - I.y) - h / d * (c.I.x - I.x) + I.y;
         db x2 = l / d * (c.I.x - I.x) - h / d * (c.I.y - I.y) + I.x, y2 = l / d * (c.I.y - I.y) + h / d * (c.I.x - I.x) + I.y;
         return {point(x1, y1), point(x2, y2)};
-	}
+    }
 };
 
 void Task() {
