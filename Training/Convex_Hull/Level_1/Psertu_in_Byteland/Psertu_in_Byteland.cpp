@@ -68,18 +68,18 @@ void Build_ConvexHull(vector <point> &p) {
 
 void Solve() {
     cin >> T;
-	while (T--) {
-		cin >> n >> r;
-		p.clear();
-		p.resize(n);
-		for (int i = 0; i < n; ++i) {
-			cin >> p[i].x >> p[i].y;
-		}
+    while (T--) {
+        cin >> n >> r;
+        p.clear();
+        p.resize(n);
+        for (int i = 0; i < n; ++i) {
+            cin >> p[i].x >> p[i].y;
+        }
 
-		Build_ConvexHull(p);
+        Build_ConvexHull(p);
 
-		cout << (r >= p.size() ? "YES\n" : "NO\n");
-	}
+        cout << (r >= p.size() ? "YES\n" : "NO\n");
+    }
 }
 
 int main() {
