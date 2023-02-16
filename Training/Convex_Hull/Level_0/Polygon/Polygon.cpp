@@ -7,19 +7,19 @@ typedef double db;
 int sign(int a) { return a == 0 ? 0 : (a > 0 ? 1 : - 1); }
 
 struct point {
-	int x, y;
+    int x, y;
 
-	point() {}
-	point(int a, int b) { x = a, y = b; }
+    point() {}
+    point(int a, int b) { x = a, y = b; }
 
-	bool operator < (point p) { return y != p.y ? y < p.y : x < p.x; }
-	point operator - (point p) { return point(x - p.x, y - p.y); }
+    bool operator < (point p) { return y != p.y ? y < p.y : x < p.x; }
+    point operator - (point p) { return point(x - p.x, y - p.y); }
 
-	db norm() { return hypot(x, y); }
+    db norm() { return hypot(x, y); }
 
-	int det(point p) { return x * p.y - y * p.x; }
+    int det(point p) { return x * p.y - y * p.x; }
 
-	int ccw(point pa, point pb) { return sign((pa - *this).det(pb - *this)); }
+    int ccw(point pa, point pb) { return sign((pa - *this).det(pb - *this)); }
 };
 
 int n;
@@ -35,44 +35,44 @@ void Task() {
 }
 
 void Build_ConvexHull(vector <point> &p) {
-	sort(p.begin(), p.end());
-	vector <point> pts = p;
-	int n = p.size(), sz = 0;
-	p.resize(n + 1);
-	for (int i = 1; i < n; ++i) {
-		if (i == n - 1 || pts[0].ccw(pts[i], pts[n - 1]) > 0) {
-			while (sz > 0 && p[sz - 1].ccw(p[sz], pts[i]) <= 0) {
-				sz--;
-			}
-			p[++sz] = pts[i];
-		}
-	}
-	for (int i = n - 2, j = sz; i >= 0; --i) {
-		if (i == 0 || pts[n - 1].ccw(pts[i], pts[0]) > 0) {
-			while (sz > j && p[sz - 1].ccw(p[sz], pts[i]) <= 0) {
-				sz--;
-			}
-			p[++sz] = pts[i];
-		}
-	}
-	p.resize(sz);
+    sort(p.begin(), p.end());
+    vector <point> pts = p;
+    int n = p.size(), sz = 0;
+    p.resize(n + 1);
+    for (int i = 1; i < n; ++i) {
+        if (i == n - 1 || pts[0].ccw(pts[i], pts[n - 1]) > 0) {
+            while (sz > 0 && p[sz - 1].ccw(p[sz], pts[i]) <= 0) {
+                sz--;
+            }
+            p[++sz] = pts[i];
+        }
+    }
+    for (int i = n - 2, j = sz; i >= 0; --i) {
+        if (i == 0 || pts[n - 1].ccw(pts[i], pts[0]) > 0) {
+            while (sz > j && p[sz - 1].ccw(p[sz], pts[i]) <= 0) {
+                sz--;
+            }
+            p[++sz] = pts[i];
+        }
+    }
+    p.resize(sz);
 }
 
 void Solve() {
-	cin >> n;
-	p.resize(n);
-	for (int i = 0; i < n; ++i) {
-		cin >> p[i].x >> p[i].y;
-	}
+    cin >> n;
+    p.resize(n);
+    for (int i = 0; i < n; ++i) {
+        cin >> p[i].x >> p[i].y;
+    }
 
-	Build_ConvexHull(p);
+    Build_ConvexHull(p);
 
-	for (int i = 0; i < p.size(); ++i) {
-		int ii = (i + 1) % p.size();
-		perimeter += (p[i] - p[ii]).norm();
-	}
+    for (int i = 0; i < p.size(); ++i) {
+        int ii = (i + 1) % p.size();
+        perimeter += (p[i] - p[ii]).norm();
+    }
 
-	cout << fixed << setprecision(1) << perimeter;
+    cout << fixed << setprecision(1) << perimeter;
 }
 
 int main() {
