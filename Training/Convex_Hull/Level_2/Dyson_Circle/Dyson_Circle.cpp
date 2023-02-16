@@ -99,5 +99,5 @@ void Solve(){
 
 int main(){
     Task();
-	Solve();
+    Solve();
 }
