@@ -76,6 +76,6 @@ void Solve() {
 }
 
 int main() {
-	Task();
+    Task();
     Solve();
 }
