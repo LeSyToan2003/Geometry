@@ -90,7 +90,7 @@ struct point {
             if (on(p[i], p[ii])) { return true; }
             point u = p[i], v = p[ii];
             if (u.y < v.y) { swap(u, v); }
-            if (gt(y, v.y) && leq(y, u.y) && u.ccw(*this, v) == 1) { cnt ^= 1; }
+            if (gt(y, v.y) && leq(y, u.y) && ccw(u, v) < 0) { cnt ^= 1; }
         }
         return cnt;
     }
@@ -102,8 +102,8 @@ struct point {
         int l = 2, r = n - 1;
         while (l < r) {
             int m = (l + r) / 2;
-            if (ccw(p[0], p[m]) > 0) { r = m; }
-            else { l = m; }
+            if (ccw(p[0], p[m]) <= 0) { r = m; }
+            else { l = m + 1; }
         }
         if (on(p[r - 1], p[r])) { return true; }
         vector <point> tri = {p[0], p[r - 1], p[r]};
