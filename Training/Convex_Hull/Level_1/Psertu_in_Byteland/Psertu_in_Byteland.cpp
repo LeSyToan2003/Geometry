@@ -34,11 +34,12 @@ void Task() {
 void Build_ConvexHull(vector <point> &p) {
     sort(p.begin(), p.end());
     bool chk = true;
-    for (int i = 2; i < p.size(); ++i)
+    for (int i = 2; i < p.size(); ++i) {
         if (p[0].ccw(p[1], p[i])) {
             chk = false;
             break;
         }
+    }
     if (chk) {
         p[1] = p.back();
         p.resize(2);
