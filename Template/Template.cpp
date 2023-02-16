@@ -12,7 +12,7 @@ typedef long double ld;
 const ll mod = 1e9 + 7;
 const db eps = 1e-9;
 const db pi = acos(- 1);
-tree <event, null_type, less<event>, rb_tree_tag, tree_order_statistics_node_update> Tree;
+tree <int, null_type, less<int>, rb_tree_tag, tree_order_statistics_node_update> Tree;
 
 bool eq(db a, db b) { return abs(a - b) <= eps; }
 bool lt(db a, db b) { return a < b - eps; }
@@ -120,7 +120,7 @@ db Area(vector <point> &p) {
     int n = p.size();
     for (int i = 0; i < n; ++i) {
         int ii = (i + 1) % n;
-        area += p[i].x * p[ii].y - p[i].y * p[ii].x;
+        area += p[i].det(p[ii]);
     }
     return abs(area) / 2;
 }
