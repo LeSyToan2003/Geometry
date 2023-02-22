@@ -146,7 +146,7 @@ struct line {
     }
 
     // Return: Intersection of two lines
-    point pits(line l) { M + dir() * (l.dir().det(M - l.M) / dir().det(l.dir())); }
+    point pits(line l) { return M + dir() * (l.dir().det(M - l.M) / dir().det(l.dir())); }
 
     // Cut the simple polygon with counter-clockwise order
     vector <point> Cut(vector <point> &p) {
