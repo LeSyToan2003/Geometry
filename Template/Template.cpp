@@ -158,12 +158,11 @@ struct point {
             if (on(p[i], p[ii])) {
                 return true;
             }
-            point u = p[i];
-            point v = p[ii];
-            if (u.y < v.y) {
-                swap(u, v);
+            point pa = p[i], point pb = p[ii];
+            if (pb.y < pa.y) {
+                swap(pa, pb);
             }
-            if (gt(y, v.y) && leq(y, u.y) && ccw(u, v) < 0) {
+            if (lt(pa.y, y) && leq(y, pb.y) && ccw(u, v) < 0) {
                 cnt ^= 1;
             }
         }
