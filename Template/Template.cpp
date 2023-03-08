@@ -52,10 +52,10 @@ struct point {
         return !eq(x, p.x) || !eq(y, p.y);
     }
     bool operator < (point p) {
-        return lt(y, p.y) || (eq(y, p.y) && lt(x, p.x));
+        return !eq(y, p.y) ? lt(y, p.y) : lt(x, p.x);
     }
     bool operator > (point p) {
-        return gt(x, p.x) || (eq(x, p.x) && gt(y, p.y));
+        return !eq(y, p.y) ? gt(y, p.y) : gt(x, p.x);
     }
     point operator + (point p) {
         return point(x + p.x, y + p.y);
@@ -85,12 +85,13 @@ struct point {
     ld dot(point p) {
         return x * p.x + y * p.y;
     }
+
     // Cross Product
     ld cross(point p) {
         return x * p.y - y * p.x;
     }
 
-    // Distance
+    // Distance between two points
     ld dist(point p) {
         return (p - *this).norm();
     }
@@ -125,8 +126,7 @@ struct point {
 
     // Return: Reflection of point through the line
     point refl(point pa, point pb) {
-        point q = proj(pa, pb);
-        return q + q - *this;
+        return proj(pa, pb) * 2 - *this;
     }
 
     // Return: Distance from the point to the line
@@ -158,7 +158,7 @@ struct point {
             if (on(p[i], p[ii])) {
                 return true;
             }
-            point pa = p[i], point pb = p[ii];
+            point pa = p[i], pb = p[ii];
             if (pb.y < pa.y) {
                 swap(pa, pb);
             }
@@ -286,7 +286,7 @@ struct circle {
         I = p, r = a;
     }
 
-    // Check: This circle contains that circle
+    // Check: Circle contains other circle
     bool contain(circle c) {
         return leq((I - c.I).norm() + c.r, r);
     }
@@ -306,7 +306,8 @@ struct circle {
         ld y1 = l / d * (c.I.y - I.y) - h / d * (c.I.x - I.x) + I.y;
         ld x2 = l / d * (c.I.x - I.x) - h / d * (c.I.y - I.y) + I.x;
         ld y2 = l / d * (c.I.y - I.y) + h / d * (c.I.x - I.x) + I.y;
-        return {point(x1, y1), point(x2, y2)};
+        vector <point> res = {point(x1, y1), point(x2, y2)};
+        return res;
     }
 };
 
