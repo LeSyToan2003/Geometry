@@ -1,1 +1,1 @@
-https://drive.google.com/drive/folders/1VWit0wQoOnv9fj8YOq6t5jESN4Sf0jnK
+https://oj.vnoi.info/problem/triangle
