@@ -1,52 +1,71 @@
 #include <bits/stdc++.h>
-#include <ext/pb_ds/assoc_container.hpp>
-#include <ext/pb_ds/tree_policy.hpp>
 
 using namespace std;
-using namespace __gnu_pbds;
 
 typedef long long ll;
-typedef double db;
+typedef long double ld;
 
-const int MINX = - 1e9;
-const int MAXX = 1e9;
 const int root = 1e6;
 
-int sign(ll a) { return a == 0 ? 0 : (a > 0 ? 1 : - 1); }
+int sign(ll a) {
+    return a == 0 ? 0 : (a > 0 ? 1 : - 1);
+}
 
 struct point {
-    int x, y, x1, y1, x2, y2, index;
+    int x;
+    int y;
+    int x1;
+    int y1;
+    int x2;
+    int y2;
+    int index;
     bool query;
 
     point() {}
-    point(int a, int b) { x = a, y = b; }
+    point(int a, int b) {
+        x = a, y = b;
+    }
 
-    bool operator == (point p) { return x == p.x && y == p.y; }
-    bool operator < (point p) { return x != p.x ? x < p.x : y < p.y; }
-    point operator - (point p) { return point(x - p.x, y - p.y); }
-    ll operator * (point p) { return (ll)x * p.x + (ll)y * p.y; }
+    bool operator == (point p) {
+        return x == p.x && y == p.y;
+    }
 
-    ll det(point p) { return (ll)x * p.y - (ll)y * p.x; }
+    bool operator < (point p) {
+        return x != p.x ? x < p.x : y < p.y;
+    }
 
-    int ccw(point pa, point pb) { return sign((pa - *this).det(pb - *this)); }
+    point operator - (point p) {
+        return point(x - p.x, y - p.y);
+    }
 
-    bool on(point pa, point pb) { return ccw(pa, pb) ? false : (pa - *this) * (pb - *this) <= 0; }
-};
+    ll cross(point p) {
+        return (ll)x * p.y - (ll)y * p.x;
+    }
 
-struct line {
-    point M, N;
-    int index;
-
-    line() {}
-    line(point pa, point pb) { M = pa, N = pb; }
-
-    db its(int x) {
-        db a = ((db)N.y - (db)M.y) / ((db)N.x - (db)M.x), b = (db)M.y - a * (db)M.x;
-        return a * (db)x + b;
+    int ccw(point pa, point pb) {
+        return sign((pa - *this).cross(pb - *this));
     }
 };
 
-int n, m, q, x;
+struct line {
+    point M;
+    point N;
+    int index;
+
+    line() {}
+    line(point pa, point pb) {
+        M = pa, N = pb;
+    }
+
+    ld its(ld x) {
+        return ((ld)x * (N.y - M.y) + (ld)M.y * N.x - (ld)M.x * N.y) / ((ld)N.x - (ld)M.x);
+    }
+};
+
+int n;
+int m;
+int q;
+ld x;
 vector <int> parent;
 vector <point> p;
 
@@ -59,21 +78,15 @@ void Task() {
 }
 
 bool operator < (line la, line lb) {
-    if (lb.M.x == MINX) {
-        point pa = la.M, pb = la.N;
-        if (la.M.x != MINX && point(x, lb.M.y).on(pa, pb)) { return false; }
-        if (pb < pa) { swap(pa, pb); }
-        return point(x, lb.M.y).ccw(pa, pb) > 0;
+    ld a = la.its(x);
+    ld b = lb.its(x);
+    if (a != b) {
+        return a < b;
     }
-    if (la.M.x == MINX) {
-        point pa = lb.M, pb = lb.N;
-        if (lb.M.x != MINX && point(x, la.M.y).on(pa, pb)) { return true; }
-        if (pb < pa) { swap(pa, pb); }
-        return point(x, la.M.y).ccw(pa, pb) < 0;
+    if (la.index < q || lb.index < q) {
+        return false;
     }
-    if (la.M == lb.N) { return la.N.y < lb.M.y; }
-    if (la.N == lb.M) { return la.M.y < lb.N.y; }
-    return la.its(x) < lb.its(x);
+    return la.M.ccw(lb.M, lb.N) < 0;
 }
 
 void Solve() {
@@ -85,70 +98,79 @@ void Solve() {
             cin >> pts[j].x >> pts[j].y;
         }
         for (int j = 0; j < m; ++j) {
+            int pre = (j - 1 + m) % m;
+            int nxt = (j + 1) % m;
+            pts[j].x1 = pts[pre].x;
+            pts[j].y1 = pts[pre].y;
+            pts[j].x2 = pts[nxt].x;
+            pts[j].y2 = pts[nxt].y;
+            pts[j].index = i + q;
+            pts[j].query = false;
             p.push_back(pts[j]);
-            int pre = (j - 1 + m) % m, nxt = (j + 1) % m;
-            p.back().query = false;
-            p.back().index = i + q;
-            p.back().x1 = pts[pre].x, p.back().y1 = pts[pre].y, p.back().x2 = pts[nxt].x, p.back().y2 = pts[nxt].y;
         }
     }
     for (int i = 0; i < q; ++i) {
-        int x, y;
-        cin >> x >> y;
-        p.push_back(point(x, y));
-        p.back().query = true;
-        p.back().index = i;
+        point pt;
+        cin >> pt.x >> pt.y;
+        pt.index = i;
+        pt.query = true;
+        p.push_back(pt);
     }
-
     sort(p.begin(), p.end());
-    tree <line, null_type, less<line>, rb_tree_tag, tree_order_statistics_node_update> Tree;
 
     parent.resize(n + q);
     for (int i = 0; i < n + q; ++i) {
         parent[i] = root;
     }
-
+    set <line> st;
     for (int i = 0; i < p.size(); ++i) {
         x = p[i].x;
         if (parent[p[i].index] == root) {
-            int node = p[i].index;
-            line l = line(point(MINX, p[i].y), point(MAXX, p[i].y));
-            Tree.insert(l);
-            auto it = Tree.find(l);
-            it++;
-            if (it == Tree.end()) {
-                parent[node] = node - q;
+            int j = p[i].index;
+            line l = line(p[i], point(p[i].x + 1, p[i].y));
+            l.index = p[i].index;
+            int previous = st.size();
+            st.insert(l);
+            auto it = st.find(l);
+            if (st.size() == previous) {
+                parent[j] = parent[(*it).index];
             }
             else {
-                point pa = (*it).M, pb = (*it).N;
-                if (p[i].ccw(pa, pb) < 0) {
-                    parent[node] = (*it).index - q;
+                it++;
+                if (it == st.end()) {
+                    parent[j] = j - q;
                 }
                 else {
-                    parent[node] = parent[(*it).index];
+                    if (p[i].ccw((*it).M, (*it).N) < 0) {
+                        parent[j] = (*it).index - q;
+                    }
+                    else {
+                        parent[j] = parent[(*it).index];
+                    }
                 }
+                st.erase(l);
             }
-            Tree.erase(l);
         }
         if (!p[i].query) {
-            point pa = point(p[i].x1, p[i].y1), pb = point(p[i].x2, p[i].y2);
+            point pa = point(p[i].x1, p[i].y1);
+            point pb = point(p[i].x2, p[i].y2);
             if (pa.x < p[i].x) {
                 line l = line(pa, p[i]);
-                Tree.erase(l);
+                st.erase(l);
             }
             if (pb.x < p[i].x) {
                 line l = line(p[i], pb);
-                Tree.erase(l);
+                st.erase(l);
             }
             if (pa.x > p[i].x) {
                 line l = line(pa, p[i]);
                 l.index = p[i].index;
-                Tree.insert(l);
+                st.insert(l);
             }
             if (pb.x > p[i].x) {
                 line l = line(p[i], pb);
                 l.index = p[i].index;
-                Tree.insert(l);
+                st.insert(l);
             }
         }
     }
