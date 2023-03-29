@@ -24,11 +24,8 @@ struct SegTree {
     SegTree() {}
     SegTree(vector <int> _vec) {
         vec = _vec;
-        even.resize(vec.size() * 4), odd.resize(vec.size() * 4), lazy.resize(vec.size() * 4);
-        minv.resize(vec.size() * 4);
-        for (int i = 0; i < vec.size() * 4; ++i) {
-            lazy[i] = 0;
-        }
+        even.resize(vec.size() * 4), odd.resize(vec.size() * 4);
+        lazy.assign(vec.size() * 4, 0), minv.assign(vec.size() * 4, {0, 0});
         build(0, 0, vec.size() - 2);
     }
 
@@ -93,17 +90,17 @@ void Solve() {
     cin >> n;
     vector <int> vecY;
     vector <event> vecEv;
-    for (int i = 0; i < n; ++i) {
+    while (n--) {
         cin >> xl >> yl >> xr >> yr;
         if (xl == xr || yl == yr) continue;
         if (xl > xr) swap(xl, xr);
         if (yl > yr) swap(yl, yr);
-        vecY.push_back(yl);
-        vecY.push_back(yr);
         vecEv.push_back(event(xl, yl, yr, 1));
         vecEv.push_back(event(xr, yl, yr, - 1));
+        vecY.push_back(yl);
+        vecY.push_back(yr);
     }
-    if (vecY.empty()) return void(cout << 0);
+    if (vecEv.empty()) return void(cout << 0);
     sort(vecEv.begin(), vecEv.end());
     sort(vecY.begin(), vecY.end());
     vecY.erase(unique(vecY.begin(), vecY.end()), vecY.end());
@@ -113,9 +110,9 @@ void Solve() {
         int r = distance(vecY.begin(), lower_bound(vecY.begin(), vecY.end(), vecEv[i].yr)) - 1;
         ST.update(0, 0, vecY.size() - 2, l, r, vecEv[i].val);
         if (!ST.minv[0].first) {
-            area += ((ll)ST.even[0] - (ll)ST.minv[0].second) * (vecEv[i + 1].x - vecEv[i].x);
+            area += 1LL * (ST.even[0] - ST.minv[0].second) * (vecEv[i + 1].x - vecEv[i].x);
         } else {
-            area += (ll)ST.even[0] * (vecEv[i + 1].x - vecEv[i].x);
+            area += 1LL * ST.even[0] * (vecEv[i + 1].x - vecEv[i].x);
         }
     }
     cout << area;

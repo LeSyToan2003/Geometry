@@ -43,7 +43,7 @@ void Solve() {
     sort(vecX.begin(), vecX.end());
     vecX.erase(unique(vecX.begin(), vecX.end()), vecX.end());
     for (int i = 0; i + 1 < vecX.size(); ++i) {
-        int preX = vecX[i], preY = 0;
+        int preX = vecX[i], preY;
         for (auto tri : vecTri) {
             if (tri.x <= vecX[i] && tri.x + tri.m > vecX[i]) {
                 if (preX > vecX[i]) {

@@ -1,150 +1,100 @@
 #include <bits/stdc++.h>
-#include <ext/pb_ds/assoc_container.hpp>
-#include <ext/pb_ds/tree_policy.hpp>
 
 using namespace std;
-using namespace __gnu_pbds;
 
-typedef long long ll;
-typedef double db;
+typedef long double ld;
 
-const db pi = acos(- 1);
-
-struct point {
-    int x, y, index;
-    bool getin;
-
-    point() {}
-    point(int a, int b) { x = a, y = b; }
-
-    bool operator < (point other) {
-        if (x != other.x) { return x < other.x; }
-        if (getin != other.getin) { return getin == false; }
-        return y < other.y;
-    }
-    point operator - (point p) { return point(x - p.x, y - p.y); }
-
-    ll norm2() { return (ll)x * x + (ll)y * y; }
-};
+const ld pi = acos(- 1);
 
 struct circle {
-    point I;
-    int r, index;
+    int x, y, r, id;
 
     circle() {}
-    circle(point pa, int i) { I = pa, r = i; }
+    circle(int _x, int _y, int _r) {
+        x = _x, y = _y, r = _r;
+    }
 
-    bool contain(circle c) { return r > c.r && (I - c.I).norm2() <= ((ll)r - c.r) * (r - c.r); }
-
-    db area() { return pi * r * r; }
+    bool contain(circle c) {
+        return 1LL * (x - c.x) * (x - c.x) + 1LL * (y - c.y) * (y - c.y) <= 1LL * r * r;
+    }
 };
 
-bool operator < (circle ca, circle cb) {
-    if (ca.I.y != cb.I.y) { return ca.I.y < cb.I.y; }
-    return ca.index < cb.index;
-}
+struct event {
+    int x, r, id, val;
+
+    event() {}
+    event(int _x, int _r, int _id, int _val) {
+        x = _x, r = _r, id = _id, val = _val;
+    }
+
+    bool operator < (event ev) {
+        return x != ev.x ? x < ev.x : (val != ev.val ? val < ev.val : x + r > ev.x + ev.r);
+    }
+};
 
 int n;
-vector <circle> c;
+ld area;
+vector <circle> vecC;
 
 void Task() {
     ios_base :: sync_with_stdio(false); cin.tie(0); cout.tie(0);
-    freopen("circles.in", "r", stdin);
-    freopen("circles.out", "w", stdout);
+    if (fopen("test.inp", "r")) {
+        freopen("test.inp", "r", stdin);
+        freopen("test.out", "w", stdout);
+    }
+}
+
+bool operator < (circle a, circle b) {
+    return a.y != b.y ? a.y < b.y : a.id < b.id;
 }
 
 void Solve() {
     cin >> n;
-    set <pair <pair <int, int>, int>> st;
+    vecC.resize(n);
+    vector <ld> vecA(n);
+    vector <event> vecEv;
     for (int i = 0; i < n; ++i) {
-        int a, b, c;
-        cin >> a >> b >> c;
-        st.insert({{a, b}, c});
+        cin >> vecC[i].x >> vecC[i].y >> vecC[i].r;
+        vecC[i].id = i;
+        vecA[i] = pi * vecC[i].r * vecC[i].r;
+        vecEv.push_back(event(vecC[i].x - vecC[i].r, vecC[i].r, i, 1));
+        vecEv.push_back(event(vecC[i].x + vecC[i].r, vecC[i].r, i, - 1));
     }
-    for (auto i : st) {
-        c.push_back(circle(point(i.first.first, i.first.second), i.second));
-        c.back().index = c.size() - 1;
-    }
-    n = c.size();
-
-    vector <point> p;
-    for (int i = 0; i < n; ++i) {
-        p.push_back(point(c[i].I.x - c[i].r, c[i].I.y));
-        p.back().getin = true;
-        p.back().index = i;
-        p.push_back(point(c[i].I.x + c[i].r, c[i].I.y));
-        p.back().getin = false;
-        p.back().index = i;
-    }
-    sort(p.begin(), p.end());
-
-    vector <bool> iscovered(n, false);
-    tree <circle, null_type, less<circle>, rb_tree_tag, tree_order_statistics_node_update> Tree;
-    for (int i = 0; i < p.size(); ++i) {
-        circle curr = c[p[i].index];
-        if (!p[i].getin) {
-            Tree.erase(curr);
-        }
-        else {
-            Tree.insert(curr);
-
-            auto it = Tree.find(curr);
-            while (true) {
-                auto upp = it;
-                upp++;
-                if (upp != Tree.end() && curr.contain(*upp)) {
-                    iscovered[(*upp).index] = true;
-                    Tree.erase(*upp);
-                }
-                else {
-                    break;
-                }
-            }
-            while (true) {
-                auto dow = it;
-                if (dow != Tree.begin()) {
-                    dow--;
-                    if (curr.contain(*dow)) {
-                        iscovered[(*dow).index] = true;
-                        Tree.erase(*dow);
-                    }
-                    else {
-                        break;
+    sort(vecEv.begin(), vecEv.end());
+    set <circle> setC;
+    for (int i = 0; i < vecEv.size(); ++i) {
+        if (vecEv[i].val == 1) {
+            bool chk = true;
+            if (!setC.empty()) {
+                setC.insert(vecC[vecEv[i].id]);
+                auto it = setC.find(vecC[vecEv[i].id]);
+                it++;
+                if (it != setC.end()) {
+                    circle c = *it;
+                    if (c.contain(vecC[vecEv[i].id])) {
+                        chk = false;
                     }
                 }
-                else {
-                    break;
-                }
-            }
-
-            auto upp = it;
-            upp++;
-            circle cc = *upp;
-            if (upp != Tree.end() && cc.contain(*it)) {
-                iscovered[(*it).index] = true;
-                Tree.erase(*it);
-            }
-            else {
-                auto dow = it;
-                if (dow != Tree.begin()) {
-                    dow--;
-                    cc = *dow;
-                    if (cc.contain(*it)) {
-                        iscovered[(*it).index] = true;
-                        Tree.erase(*it);
+                it--;
+                if (it != setC.begin()) {
+                    it--;
+                    circle c = *it;
+                    if (c.contain(vecC[vecEv[i].id])) {
+                        chk = false;
                     }
                 }
+                setC.erase(vecC[vecEv[i].id]);
             }
+            if (!chk) {
+                vecA[vecEv[i].id] = 0;
+            } else {
+                setC.insert(vecC[vecEv[i].id]);
+            }
+        } else if (vecA[vecEv[i].id]) {
+            setC.erase(vecC[vecEv[i].id]);
         }
     }
-
-    db area = 0;
-    for (int i = 0; i < n; ++i) {
-        if (!iscovered[i]) {
-            area += c[i].area();
-        }
-    }
-
+    area = accumulate(vecA.begin(), vecA.end(), 0.0);
     cout << fixed << setprecision(10) << area;
 }
 

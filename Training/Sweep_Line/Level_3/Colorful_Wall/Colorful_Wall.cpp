@@ -3,23 +3,25 @@
 using namespace std;
 
 struct event {
-    int val, ind, lef, rig;
-    bool sta;
+    int y, xl, xr, color, order, val;
 
     event() {}
-    event(int a, int b, int c, int d, bool e) { val = a; ind = b; lef = c; rig = d; sta = e; }
+    event(int _y, int _xl, int _xr, int _order, int _val) {
+        y = _y, xl = _xl, xr = _xr, order = _order, val = _val;
+    }
 
-    bool operator < (event a) { return val < a.val; }
+    bool operator < (event ev) {
+        return y < ev.y;
+    }
 };
 
-int n;
-vector <bool> color;
-vector <int> xx;
-vector <event> yy;
+int n, xl, yl, xr, yr, cnt;
+vector <bool> status;
+vector <int> color;
 
 void Task() {
     ios_base :: sync_with_stdio(false); cin.tie(0); cout.tie(0);
-	if (fopen("test.inp", "r")) {
+    if (fopen("test.inp", "r")) {
         freopen("test.inp", "r", stdin);
         freopen("test.out", "w", stdout);
     }
@@ -27,57 +29,44 @@ void Task() {
 
 void Solve() {
     cin >> n;
-    vector <int> c(n);
-    set <int> st;
-    for (int i = 0; i < n; ++i) {
-        int x1, y1, x2, y2;
-        cin >> x1 >> y1 >> x2 >> y2 >> c[i];
-        c[i]--;
-        st.insert(x1);
-        st.insert(x2);
-        yy.push_back(event(y1, i, x1, x2, false));
-        yy.push_back(event(y2, i, x1, x2, true));
-    }
-
-    sort(yy.begin(), yy.end());
-    for (auto i : st) {
-        xx.push_back(i);
-    }
+    status.assign(n, false);
     color.resize(n);
+    vector <int> vecX;
+    vector <event> vecEv;
     for (int i = 0; i < n; ++i) {
-        color[i] = false;
+        cin >> xl >> yr >> xr >> yl >> color[i];
+        color[i]--;
+        vecX.push_back(xl);
+        vecX.push_back(xr);
+        vecEv.push_back(event(yl, xl, xr, i, 1));
+        vecEv.push_back(event(yr, xl, xr, i, - 1));
     }
-
-    for (int i = 0; i < xx.size() - 1; ++i) {
-        vector <event> curr;
-        for (int j = 0; j < yy.size(); ++j) {
-            if (yy[j].lef <= xx[i] && xx[i + 1] <= yy[j].rig) {
-                curr.push_back(yy[j]);
+    sort(vecX.begin(), vecX.end());
+    sort(vecEv.begin(), vecEv.end());
+    vecX.erase(unique(vecX.begin(), vecX.end()), vecX.end());
+    for (auto x : vecX) {
+        vector <event> vec;
+        for (auto ev : vecEv) {
+            if (ev.xl <= x && ev.xr > x) {
+                vec.push_back(ev);
             }
         }
-        if (curr.size()) {
-            set <int> pos;
-            for (int j = 0; j < curr.size() - 1; ++j) {
-                if (curr[j].sta) {
-                    pos.insert(curr[j].ind);
-                }
-                else {
-                    pos.erase(curr[j].ind);
-                }
-                if (pos.size() && curr[j].val != curr[j + 1].val) {
-                    auto it = pos.end();
-                    it--;
-                    color[c[*it]] = true;
-                }
+        if (vec.empty()) continue;
+        set <int> setO;
+        for (int i = 0; i + 1 < vec.size(); ++i) {
+            if (vec[i].val == 1) {
+                setO.insert(vec[i].order);
+            } else {
+                setO.erase(vec[i].order);
+            }
+            if (vec[i].y != vec[i + 1].y && !setO.empty()) {
+                auto it = setO.end();
+                it--;
+                status[color[*it]] = true;
             }
         }
     }
-
-    int cnt = 0;
-    for (auto i : color) {
-        cnt += i;
-    }
-
+    cnt = accumulate(status.begin(), status.end(), 0);
     cout << cnt;
 }
 
