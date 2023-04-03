@@ -2,12 +2,13 @@
 
 using namespace std;
 
+typedef long long ll;
 typedef long double ld;
 
 const ld pi = acos(- 1);
 
 struct circle {
-    int x, y, r, id;
+    int x, y, r;
 
     circle() {}
     circle(int _x, int _y, int _r) {
@@ -15,7 +16,7 @@ struct circle {
     }
 
     bool contain(circle c) {
-        return 1LL * (x - c.x) * (x - c.x) + 1LL * (y - c.y) * (y - c.y) <= 1LL * r * r;
+        return ((ll)x - (ll)c.x) * ((ll)x - (ll)c.x) + ((ll)y - (ll)c.y) * ((ll)y - (ll)c.y) <= (ll)r * r;
     }
 };
 
@@ -27,14 +28,16 @@ struct event {
         x = _x, r = _r, id = _id, val = _val;
     }
 
-    bool operator < (event ev) {
-        return x != ev.x ? x < ev.x : (val != ev.val ? val < ev.val : x + r > ev.x + ev.r);
+    bool operator < (event e) {
+        return x != e.x ? x < e.x : (val != e.val ? val < e.val : r > e.r);
     }
 };
 
 int n;
 ld area;
+vector <ld> vecA;
 vector <circle> vecC;
+set <circle> setC;
 
 void Task() {
     ios_base :: sync_with_stdio(false); cin.tie(0); cout.tie(0);
@@ -45,53 +48,47 @@ void Task() {
 }
 
 bool operator < (circle a, circle b) {
-    return a.y != b.y ? a.y < b.y : a.id < b.id;
+    return a.y < b.y;
+}
+
+set <circle> :: iterator prev(set <circle> :: iterator it) {
+    return it == setC.begin() ? setC.end() : --it;
 }
 
 void Solve() {
     cin >> n;
     vecC.resize(n);
-    vector <ld> vecA(n);
-    vector <event> vecEv;
+    vecA.assign(n, 0);
+    vector <event> vecE;
     for (int i = 0; i < n; ++i) {
-        cin >> vecC[i].x >> vecC[i].y >> vecC[i].r;
-        vecC[i].id = i;
-        vecA[i] = pi * vecC[i].r * vecC[i].r;
-        vecEv.push_back(event(vecC[i].x - vecC[i].r, vecC[i].r, i, 1));
-        vecEv.push_back(event(vecC[i].x + vecC[i].r, vecC[i].r, i, - 1));
+        int x, y, r;
+        cin >> x >> y >> r;
+        vecC[i] = circle(x, y, r);
+        vecA[i] = pi * r * r;
+        vecE.push_back(event(x - r, r, i, 1));
+        vecE.push_back(event(x + r, r, i, - 1));
     }
-    sort(vecEv.begin(), vecEv.end());
-    set <circle> setC;
-    for (int i = 0; i < vecEv.size(); ++i) {
-        if (vecEv[i].val == 1) {
+    sort(vecE.begin(), vecE.end());
+    for (int i = 0; i < vecE.size(); ++i) {
+        event e = vecE[i];
+        circle c = vecC[e.id];
+        if (e.val == 1) {
             bool chk = true;
-            if (!setC.empty()) {
-                setC.insert(vecC[vecEv[i].id]);
-                auto it = setC.find(vecC[vecEv[i].id]);
-                it++;
-                if (it != setC.end()) {
-                    circle c = *it;
-                    if (c.contain(vecC[vecEv[i].id])) {
-                        chk = false;
-                    }
-                }
-                it--;
-                if (it != setC.begin()) {
-                    it--;
-                    circle c = *it;
-                    if (c.contain(vecC[vecEv[i].id])) {
-                        chk = false;
-                    }
-                }
-                setC.erase(vecC[vecEv[i].id]);
+            auto nxt = setC.lower_bound(c);
+            auto pre = prev(nxt);
+            circle cnxt = *nxt, cpre = *pre;
+            if (nxt != setC.end() && cnxt.contain(c)) {
+                chk = false;
+            } else if (pre != setC.end() && cpre.contain(c)) {
+                chk = false;
             }
             if (!chk) {
-                vecA[vecEv[i].id] = 0;
+                vecA[e.id] = 0;
             } else {
-                setC.insert(vecC[vecEv[i].id]);
+                setC.insert(c);
             }
-        } else if (vecA[vecEv[i].id]) {
-            setC.erase(vecC[vecEv[i].id]);
+        } else if (vecA[e.id]) {
+            setC.erase(c);
         }
     }
     area = accumulate(vecA.begin(), vecA.end(), 0.0);
