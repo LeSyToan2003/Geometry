@@ -1,28 +1,33 @@
 #include <bits/stdc++.h>
-#include <ext/pb_ds/assoc_container.hpp>
-#include <ext/pb_ds/tree_policy.hpp>
 
 using namespace std;
-using namespace __gnu_pbds;
 
 typedef long long ll;
+typedef long double ld;
 
-const int MIND = - 1e6 - 9;
+const int INF = 1e9;
 
 struct point {
-    int x, y, index;
+    int x, y, id;
 
     point() {}
-    point(int a, int b, int c) { x = a; y = b; index = c; }
+    point(int _x, int _y) {
+        x = _x, y = _y;
+    }
 
-    point operator - (point p) { return point(x - p.x, y - p.y, 0); }
+    point operator - (point p) {
+        return point(x - p.x, y - p.y);
+    }
 
-    ll norm2() { return (ll)x * x + (ll)y * y; }
+    ll norm2() {
+        return (ll)x * x + (ll)y * y;
+    }
 };
 
 int n;
-ll mind = 1e18;
-vector <point> p;
+ll mind;
+pair <int, int> id;
+vector <point> vecP;
 
 void Task() {
     ios_base :: sync_with_stdio(false); cin.tie(0); cout.tie(0);
@@ -32,58 +37,46 @@ void Task() {
     }
 }
 
-bool operator < (point pa, point pb) {
-    return pa.y != pb.y ? pa.y < pb.y : pa.x < pb.x;
+bool operator < (point a, point b) {
+    return a.y != b.y ? a.y < b.y : a.id < b.id;
 }
 
-bool cmp(point pa, point pb) {
-    return pa.x != pb.x ? pa.x < pb.x : pa.y < pb.y;
+bool cmp(point a, point b) {
+    return a.x != b.x ? a.x < b.x : a.y < b.y;
 }
 
 void Solve() {
+    mind = (ll)INF * INF;
     cin >> n;
-    p.resize(n);
+    vecP.resize(n);
     for (int i = 0; i < n; ++i) {
-        cin >> p[i].x >> p[i].y;
+        cin >> vecP[i].x >> vecP[i].y;
+        vecP[i].id = i;
     }
-
-    for (int i = 0; i < n; ++i) {
-        p[i].index = i;
-    }
-    sort(p.begin(), p.end(), cmp);
-
-    tree <point, null_type, less<point>, rb_tree_tag, tree_order_statistics_node_update> Tree;
-    pair <int, int> pos;
+    sort(vecP.begin(), vecP.end(), cmp);
+    set <point> setP;
     for (int i = 0; i < n; ++i) {
         int d = (int)ceil(sqrt(mind));
-        point pi = point(MIND, p[i].y - d, p[i].index);
+        point p = point( - INF, vecP[i].y - d);
+        p.id = vecP[i].id;
         while (true) {
-            auto it = Tree.upper_bound(pi);
-            pi = *it;
-            if (it == Tree.end()) {
-                break;
-            }
-            if (pi.y > p[i].y + d) {
-                break;
-            }
-            if (pi.x < p[i].x - d) {
-                Tree.erase(it);
+            auto it = setP.upper_bound(p);
+            if (it == setP.end() || (*it).y > vecP[i].y + d) break;
+            p = *it;
+            if (p.x < vecP[i].x - d) {
+                setP.erase(p);
                 continue;
             }
-            ll dist = (pi - p[i]).norm2();
-            if (dist < mind) {
-                mind = dist;
-                pos = {pi.index, p[i].index};
+            ll currd = (p - vecP[i]).norm2();
+            if (currd < mind) {
+                mind = currd;
+                id = {p.id, vecP[i].id};
             }
         }
-        Tree.insert(p[i]);
+        setP.insert(vecP[i]);
     }
-
-    if (pos.first > pos.second) {
-        swap(pos.first, pos.second);
-    }
-
-    cout << pos.first << " " << pos.second << " ";
+    if (id.first > id.second) swap(id.first, id.second);
+    cout << id.first << " " << id.second << " ";
     cout << fixed << setprecision(6) << sqrt(mind);
 }
 
