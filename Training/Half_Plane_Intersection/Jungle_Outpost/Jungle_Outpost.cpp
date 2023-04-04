@@ -4,8 +4,7 @@ using namespace std;
 
 typedef long double ld;
 
-const int INF = 1e7;
-const ld eps = 1e-9;
+const ld eps = 1e-6;
 
 bool eq(ld a, ld b) {
     return abs(a - b) <= eps;
@@ -19,17 +18,18 @@ struct point {
     ld x, y;
 
     point() {}
-    point(ld x, ld y) {
-        (*this).x = x;
-        (*this).y = y;
+    point(ld _x, ld _y) {
+        x = _x, y = _y;
     }
 
     point operator + (point p) {
         return point(x + p.x, y + p.y);
     }
+
     point operator - (point p) {
         return point(x - p.x, y - p.y);
     }
+
     point operator * (ld k) {
         return point(x * k, y * k);
     }
@@ -43,13 +43,12 @@ struct point {
     }
 };
 
-struct line {
+struct halfplane {
     point M, N;
 
-    line() {}
-    line(point M, point N) {
-        (*this).M = M;
-        (*this).N = N;
+    halfplane() {}
+    halfplane(point _M, point _N) {
+        M = _M, N = _N;
     }
 
     point dir() {
@@ -57,16 +56,16 @@ struct line {
     }
 
     bool contain(point p) {
-        return M.ccw(N, p) > 0;
+        return p.ccw(M, N) <= 0;
     }
 
-    point pits(line l) {
-        return M + dir() * (l.dir().cross(M - l.M) / dir().cross(l.dir()));
+    point its(halfplane hp) {
+        return M + dir() * (hp.dir().cross(M - hp.M) / dir().cross(hp.dir()));
     }
 };
 
 int n;
-vector <point> p;
+vector <point> vecP;
 
 void Task() {
     ios_base :: sync_with_stdio(false); cin.tie(0); cout.tie(0);
@@ -76,7 +75,7 @@ void Task() {
     }
 }
 
-ld Area(vector <point> &p) {
+ld Area(vector <point> p) {
     ld area = 0;
     int n = p.size();
     for (int i = 0; i < n; ++i) {
@@ -87,56 +86,52 @@ ld Area(vector <point> &p) {
 }
 
 bool Check(int m) {
-    deque <line> hp;
-    deque <point> pts;
+    deque <halfplane> dqHp;
+    deque <point> dqP;
     for (int i = 0; i < n; ++i) {
         int ii = (i + m + 1) % n;
-        line l = line(p[i], p[ii]);
-        while (hp.size() > 1 && !l.contain(pts.back())) {
-            hp.pop_back();
-            pts.pop_back();
+        halfplane hp(vecP[i], vecP[ii]);
+        while (!dqP.empty() && !hp.contain(dqP.back())) {
+            dqHp.pop_back();
+            dqP.pop_back();
         }
-        while (hp.size() > 1 && !l.contain(pts.front())) {
-            hp.pop_front();
-            pts.pop_front();
+        while (!dqP.empty() && !hp.contain(dqP.front())) {
+            dqHp.pop_front();
+            dqP.pop_front();
         }
-        hp.push_back(l);
-        if (hp.size() > 1) {
-            pts.push_back(hp[hp.size() - 1].pits(hp[hp.size() - 2]));
+        if (!dqHp.empty()) {
+            dqP.push_back(hp.its(dqHp.back()));
         }
+        dqHp.push_back(hp);
     }
-    while (hp.size() > 2 && !hp.front().contain(pts.back())) {
-        hp.pop_back();
-        pts.pop_back();
+    while (dqHp.size() > 2 && !dqHp.front().contain(dqP.back())) {
+        dqHp.pop_back();
+        dqP.pop_back();
     }
-    while (hp.size() > 2 && !hp.back().contain(pts.front())) {
-        hp.pop_front();
-        pts.pop_front();
+    while (dqHp.size() > 2 && !dqHp.back().contain(dqP.front())) {
+        dqHp.pop_front();
+        dqP.pop_front();
     }
-    pts.push_back(hp.back().pits(hp.front()));
-    vector <point> polygon = vector <point> (pts.begin(), pts.end());
-    return !eq(Area(polygon), 0);
+    dqP.push_back(dqHp.back().its(dqHp.front()));
+    vector <point> vecPoly(dqP.begin(), dqP.end());
+    return !eq(Area(vecPoly), 0);
 }
 
 void Solve() {
     cin >> n;
-    p.resize(n);
+    vecP.resize(n);
     for (int i = 0; i < n; ++i) {
-        cin >> p[i].x >> p[i].y;
+        cin >> vecP[i].x >> vecP[i].y;
     }
-    reverse(p.begin(), p.end());
-
     int l = 1, r = n - 2;
-    while (l <= r) {
+    while (l < r) {
         int m = (l + r) / 2;
         if (Check(m)) {
             l = m + 1;
-        }
-        else {
-            r = m - 1;
+        } else {
+            r = m;
         }
     }
-
     cout << l;
 }
 
