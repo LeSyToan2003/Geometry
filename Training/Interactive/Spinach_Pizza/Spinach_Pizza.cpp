@@ -4,18 +4,29 @@ using namespace std;
 
 typedef long long ll;
 
-const ll MAXAREA = 1e18;
-
 struct point {
     int x, y, index;
 
-    bool operator != (point p) { return x != p.x || y != p.y; }
+    point() {}
+    point(int _x, int _y) {
+        x = _x, y = _y;
+    }
 
-    ll area(point pa, point pb) { return abs(((ll)pa.x - x) * (pb.y - y) - ((ll)pa.y - y) * (pb.x - x)); }
+    point operator - (point p) {
+        return point(x - p.x, y - p.y);
+    }
+
+    ll cross(point p) {
+        return (ll)x * p.y - (ll)y * p.x;
+    }
+
+    ll area(point pa, point pb) {
+        return abs((pa - *this).cross(pb - *this));
+    }
 };
 
-int n, ind;
-vector <point> p;
+int n;
+vector <point> vecP;
 
 void Task() {
     ios_base :: sync_with_stdio(false); cin.tie(0); cout.tie(0);
@@ -25,52 +36,51 @@ void Task() {
     }
 }
 
-void Delete(point pa) {
-    vector <point> result;
-    for (int i = 0; i < p.size(); ++i) {
-        if (p[i] != pa) {
-            result.push_back(p[i]);
+void Delete(int index) {
+    vector <point> vecPts;
+    int n = vecP.size();
+    for (int i = 0; i < n; ++i) {
+        if (vecP[i].index + 1 != index) {
+            vecPts.push_back(vecP[i]);
         }
     }
-    p = result;
+    vecP = vecPts;
+}
+
+int Minimum() {
+    ll minarea = 1e18;
+    int n = vecP.size(), index;
+    for (int i = 0; i < n; ++i) {
+        int ii = (i - 1 + n) % n, iii = (i + 1) % n;
+        ll a = vecP[i].area(vecP[ii], vecP[iii]);
+        if (a < minarea) {
+            minarea = a;
+            index = vecP[i].index + 1;
+        }
+    }
+    Delete(index);
+    return index;
 }
 
 void Solve() {
     cin >> n;
-    p.resize(n);
+    vecP.resize(n);
     for (int i = 0; i < n; ++i) {
-        cin >> p[i].x >> p[i].y;
+        cin >> vecP[i].x >> vecP[i].y;
+        vecP[i].index = i;
     }
-
-    for (int i = 0; i < n; ++i) {
-        p[i].index = i + 1;
-    }
-    vector <point> pinit = p;
-
-    if (n % 2) {
-        cout << "Beatrice" << endl;
-        cin >> ind;
-        Delete(pinit[ind - 1]);
-    }
-    else {
+    int index;
+    if (!(n % 2)) {
         cout << "Alberto" << endl;
+    } else {
+        cout << "Beatrice" << endl;
+        cin >> index;
+        Delete(index);
     }
-
-    while (p.size() > 2) {
-        ll mina = MAXAREA;
-        n = p.size();
-        for (int i = 0; i < n; ++i) {
-            int pre = (i - 1 + n) % n, nxt = (i + 1) % n;
-            ll a = p[i].area(p[pre], p[nxt]);
-            if (a < mina) {
-                mina = a;
-                ind = p[i].index;
-            }
-        }
-        cout << ind << endl;
-        Delete(pinit[ind - 1]);
-        cin >> ind;
-        Delete(pinit[ind - 1]);
+    while (vecP.size() > 2) {
+        cout << Minimum() << endl;
+        cin >> index;
+        Delete(index);
     }
 }
 
