@@ -5,26 +5,40 @@ using namespace std;
 typedef long long ll;
 typedef long double ld;
 
-const int MINX = - 1e9 - 9;
-const int MAXX = 1e9 + 9;
-const int MAXN = 6e5 + 9;
-const int MAXD = 1e9 + 9;
-const int root = 6e5 + 9;
+const int inf = 1e9 + 9;
+const ld eps = 1e-9;
 
-int sign(ll a) { return a == 0 ? 0 : (a > 0 ? 1 : - 1); }
+bool eq(ld a, ld b) {
+    return abs(a - b) <= eps;
+}
+
+int sign(ll a) {
+    return !a ? 0 : (a > 0 ? 1 : - 1);
+}
 
 struct point {
     int x, y, x1, y1, x2, y2, index;
 
     point() {}
-    point(int a, int b) { x = a, y = b; }
+    point(int _x, int _y) {
+        x = _x, y = _y;
+    }
 
-    bool operator < (point p) { return x != p.x ? x < p.x : y < p.y; }
-    point operator - (point p) { return point(x - p.x, y - p.y); }
+    bool operator < (point p) {
+        return x != p.x ? x < p.x : y < p.y;
+    }
 
-    ll det(point p) { return (ll)x * p.y - (ll)y * p.x; }
+    point operator - (point p) {
+        return point(x - p.x, y - p.y);
+    }
 
-    int ccw(point pa, point pb) { return sign((pa - *this).det(pb - *this)); }
+    ll cross(point p) {
+        return (ll)x * p.y - (ll)y * p.x;
+    }
+
+    int ccw(point pa, point pb) {
+        return sign((pa - *this).cross(pb - *this));
+    }
 };
 
 struct line {
@@ -32,15 +46,20 @@ struct line {
     int index;
 
     line() {}
-    line(point pa, point pb) { M = pa, N = pb; }
+    line(point _M, point _N) {
+        M = _M, N = _N;
+    }
 
-    ld its(int x) { return ((ld)x * (N.y - M.y) + (ld)M.y * N.x - (ld)M.x * N.y) / ((ld)N.x - (ld)M.x); }
+    ld its(ld x) {
+        return (x * (N.y - M.y) + (ld)M.y * N.x - (ld)M.x * N.y) / (ld)(N.x - M.x);
+    }
 };
 
-int n, m, x, diameter, Michael, Lincoln, maxd;
-vector <int> parent, dist;
-vector <point> p;
-vector <vector <int>> adjacent;
+int n, k, x, diameter, node1, node2, root;
+vector <int> vecPar, vecDist;
+vector <point> vecP;
+vector <vector <int>> vecEdge;
+set <line> setL;
 
 void Task() {
     ios_base :: sync_with_stdio(false); cin.tie(0); cout.tie(0);
@@ -52,126 +71,99 @@ void Task() {
 
 bool operator < (line la, line lb) {
     ld a = la.its(x), b = lb.its(x);
-    return a != b ? a < b : la.M.ccw(lb.M, lb.N) < 0;
+    if (!eq(a, b)) {
+        return a < b;
+    }
+    ld xx = (max(la.M.x, lb.N.x) + min(la.N.x, lb.M.x)) / 2.0;
+    return la.its(xx) < lb.its(xx);
 }
 
-void DFS(int u, int d, int v) {
+set <line> :: iterator next(line l) {
+    return setL.upper_bound(l);
+}
+
+void DFS(int u, int d, int par) {
     if (d > diameter) {
         diameter = d;
-        Michael = u;
+        node1 = u;
     }
-    for (auto i : adjacent[u]) {
-        if (i != v) {
-            DFS(i, d + 1, u);
+    vecDist[u] = d;
+    for (auto v : vecEdge[u]) {
+        if (v != par) {
+            DFS(v, d + 1, u);
         }
     }
 }
 
-void BFS(int u) {
-    dist.resize(MAXN);
-    for (int i = 0; i < MAXN; ++i) { dist[i] = MAXD; }
-    queue <int> Q;
-    dist[u] = 0;
-    Q.push(u);
-    while (Q.size()) {
-        int v = Q.front();
-        Q.pop();
-        for (auto i : adjacent[v]) {
-            if (dist[i] > dist[v] + 1) {
-                dist[i] = dist[v] + 1;
-                Q.push(i);
-            }
-        }
+int Processing() {
+    vecEdge.resize(n + 1);
+    for (int i = 0; i < n; ++i) {
+        vecEdge[i].push_back(vecPar[i]);
+        vecEdge[vecPar[i]].push_back(i);
     }
-}
-
-void Find_Diameter() {
-    diameter = Michael = 0;
+    vecDist.resize(n + 1);
     DFS(root, 0, - 1);
-    Lincoln = Michael;
-    DFS(Lincoln, 0, - 1);
-    maxd = diameter;
-    BFS(root);
-    maxd += max(dist[Michael], dist[Lincoln]);
+    vector <int> vecD = vecDist;
+    node2 = node1;
+    DFS(node2, 0, - 1);
+    return diameter + max(vecD[node1], vecD[node2]);
 }
 
 void Solve() {
     cin >> n;
     for (int i = 0; i < n; ++i) {
-        cin >> m;
-        vector <point> pts(m);
-        for (int j = 0; j < m; ++j) {
-            cin >> pts[j].x >> pts[j].y;
+        cin >> k;
+        vector <point> vecPts(k);
+        for (int j = 0; j < k; ++j) {
+            cin >> vecPts[j].x >> vecPts[j].y;
+            vecPts[j].index = i;
         }
-        reverse(pts.begin(), pts.end());
-        for (int j = 0; j < m; ++j) {
-            p.push_back(pts[j]);
-            p.back().index = i;
-            int pre = (j - 1 + m) % m, nxt = (j + 1) % m;
-            p.back().x1 = pts[pre].x, p.back().y1 = pts[pre].y, p.back().x2 = pts[nxt].x, p.back().y2 = pts[nxt].y;
+        for (int j = 0; j < k; ++j) {
+            int jj = (j - 1 + k) % k, jjj = (j + 1) % k;
+            vecPts[j].x1 = vecPts[jj].x, vecPts[j].y1 = vecPts[jj].y;
+            vecPts[j].x2 = vecPts[jjj].x, vecPts[j].y2 = vecPts[jjj].y;
+            vecP.push_back(vecPts[j]);
         }
     }
-
-    sort(p.begin(), p.end());
-    set <line> Tree;
-
-    parent.resize(n);
-    for (int i = 0; i < n; ++i) {
-        parent[i] = - 1;
-    }
-
-    for (int i = 0; i < p.size(); ++i) {
-        x = p[i].x;
-        int node = p[i].index;
-        if (parent[node] == - 1) {
-            line l = line(point(MINX, p[i].y), point(MAXX, p[i].y));
-            Tree.insert(l);
-            auto it = Tree.find(l);
-            it++;
-            if (it == Tree.end()) {
-                parent[node] = root;
-            }
-            else {
-                point pa = (*it).M, pb = (*it).N;
-                if (p[i].ccw(pa, pb) < 0) {
-                    parent[node] = (*it).index;
+    sort(vecP.begin(), vecP.end());
+    vecPar.assign(n, - 1);
+    root = n;
+    for (int i = 0; i < vecP.size(); ++i) {
+        x = vecP[i].x;
+        int node = vecP[i].index;
+        if (vecPar[node] == - 1) {
+            line l = line(point(- inf, vecP[i].y), point(inf, vecP[i].y));
+            auto nxt = next(l);
+            if (nxt == setL.end()) {
+                vecPar[node] = root;
+            } else {
+                point pa = (*nxt).M, pb = (*nxt).N;
+                if (vecP[i].ccw(pa, pb) > 0) {
+                    vecPar[node] = (*nxt).index;
                 }
                 else {
-                    parent[node] = parent[(*it).index];
+                    vecPar[node] = vecPar[(*nxt).index];
                 }
             }
-            Tree.erase(l);
         }
-        point pa = point(p[i].x1, p[i].y1), pb = point(p[i].x2, p[i].y2);
-        if (pa.x < p[i].x) {
-            line l = line(pa, p[i]);
-            Tree.erase(l);
+        point pa = point(vecP[i].x1, vecP[i].y1), pb = point(vecP[i].x2, vecP[i].y2);
+        line la = line(pa, vecP[i]), lb = line(vecP[i], pb);
+        if (pa.x < vecP[i].x) {
+            setL.erase(la);
         }
-        if (pb.x < p[i].x) {
-            line l = line(p[i], pb);
-            Tree.erase(l);
+        if (pb.x < vecP[i].x) {
+            setL.erase(lb);
         }
-        if (p[i].x < pa.x) {
-            line l = line(pa, p[i]);
-            l.index = p[i].index;
-            Tree.insert(l);
+        if (vecP[i].x < pa.x) {
+            la.index = node;
+            setL.insert(la);
         }
-        if (p[i].x < pb.x) {
-            line l = line(p[i], pb);
-            l.index = p[i].index;
-            Tree.insert(l);
+        if (vecP[i].x < pb.x) {
+            lb.index = node;
+            setL.insert(lb);
         }
     }
-
-    adjacent.resize(MAXN);
-    for (int i = 0; i < n; ++i) {
-        adjacent[i].push_back(parent[i]);
-        adjacent[parent[i]].push_back(i);
-    }
-
-    Find_Diameter();
-
-    cout << maxd;
+    cout << Processing();
 }
 
 int main() {
