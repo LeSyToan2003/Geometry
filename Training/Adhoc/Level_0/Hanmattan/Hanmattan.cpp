@@ -14,13 +14,7 @@ void Task() {
 
 void Solve() {
     cin >> xa >> ya >> xs >> ys >> xb >> yb;
-
-    int minx = min(xa, xs);
-    int miny = min(ya, ys);
-    int maxx = max(xa, xs);
-    int maxy = max(ya, ys);
-
-    cout << (minx <= xb && xb <= maxx && miny <= yb && yb <= maxy ? "Yes" : "No");
+    cout << (min(xa, xs) <= xb && xb <= max(xa, xs) && min(ya, ys) <= yb && yb <= max(ya, ys) ? "Yes" : "No");
 }
 
 int main() {
