@@ -2,22 +2,28 @@
 
 using namespace std;
 
-const int MAXD = 1e9;
+typedef long long ll;
 
 struct point {
     int x, y;
 
     point() {}
-    point(int a, int b) { x = a, y = b; }
+    point(int _x, int _y) {
+        x = _x, y = _y;
+    }
 
-    point operator - (point p) { return point(x - p.x, y - p.y); }
+    point operator - (point p) {
+        return point(x - p.x, y - p.y);
+    }
 
-    int norm2() { return x * x + y * y; }
+    ll norm2() {
+        return (ll)x * x + (ll)y * y;
+    }
 };
 
 int n, m;
-vector <point> p;
-vector <vector <int>> edge;
+vector <point> vecP;
+vector <vector <int>> vecEdge;
 
 void Task() {
     ios_base :: sync_with_stdio(false); cin.tie(0); cout.tie(0);
@@ -27,50 +33,59 @@ void Task() {
     }
 }
 
-void Find_MST() {
-    vector <int> d(n + 1), par(n + 1, 1);
-    for (int i = 2; i <= n; ++i) { d[i] = (p[1] - p[i]).norm2(); }
-    for (auto i : edge[1]) { d[i] = 0; }
-    vector <bool> visited(n + 1, false);
-    visited[1] = true;
-    for (int i = 2; i <= n; ++i) {
-        pair <int, int> minn = {0, MAXD};
-        for (int j = 2; j <= n; ++j) {
-            if (!visited[j] && d[j] < minn.second) {
-                minn = {j, d[j]};
+void Processing() {
+    vector <bool> vecVisit(n, false);
+    vector <int> vecPar(n, 0);
+    vector <ll> vecDist(n);
+    for (int i = 1; i < n; ++i) {
+        vecDist[i] = (vecP[0] - vecP[i]).norm2();
+    }
+    for (auto i : vecEdge[0]) {
+        vecDist[i] = 0;
+    }
+    vecVisit[0] = true;
+    for (int loop = 1; loop < n; ++loop) {
+        pair <int, ll> minn = {- 1, 1e18};
+        for (int i = 0; i < n; ++i) {
+            if (!vecVisit[i] && vecDist[i] < minn.second) {
+                minn = {i, vecDist[i]};
             }
         }
-        visited[minn.first] = true;
-        for (auto j : edge[minn.first]) { d[j] = 0; }
-        for (int j = 2; j <= n; ++j) {
-            if (!visited[j]) {
-                int can = (p[minn.first] - p[j]).norm2();
-                if (can < d[j]) {
-                    d[j] = can;
-                    par[j] = minn.first;
+        int u = minn.first;
+        vecVisit[u] = true;
+        for (auto i : vecEdge[u]) {
+            vecDist[i] = 0;
+        }
+        for (int i = 0; i < n; ++i) {
+            if (!vecVisit[i]) {
+                ll dist = (vecP[u] - vecP[i]).norm2();
+                if (dist < vecDist[i]) {
+                    vecDist[i] = dist;
+                    vecPar[i] = u;
                 }
             }
         }
-        if (minn.second) { cout << minn.first << " " << par[minn.first] << "\n"; }
+        if (minn.second) {
+            cout << vecPar[u] + 1 << " " << u + 1 << "\n";
+        }
     }
 }
 
 void Solve() {
     cin >> n;
-    p.resize(n + 1);
-    for (int i = 1; i <= n; ++i) {
-        cin >> p[i].x >> p[i].y;
+    vecP.resize(n), vecEdge.resize(n);
+    for (int i = 0; i < n; ++i) {
+        cin >> vecP[i].x >> vecP[i].y;
     }
     cin >> m;
-    edge.resize(n + 1);
     while (m--) {
         int u, v;
         cin >> u >> v;
-        edge[u].push_back(v);
-        edge[v].push_back(u);
+        u--, v--;
+        vecEdge[u].push_back(v);
+        vecEdge[v].push_back(u);
     }
-
-    Find_MST();
+    Processing();
 }
 
 int main() {
