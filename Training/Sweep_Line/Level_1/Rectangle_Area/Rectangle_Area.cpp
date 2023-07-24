@@ -5,11 +5,11 @@ using namespace std;
 typedef long long ll;
 
 struct event {
-    int x, yl, yr, val;
+    int x, y1, y2, value;
 
     event() {}
-    event(int _x, int _yl, int _yr, int _val) {
-        x = _x, yl = _yl, yr = _yr, val = _val;
+    event(int _x, int _y1, int _y2, int _value) {
+        x = _x, y1 = _y1, y2 = _y2, value = _value;
     }
 
     bool operator < (event e) {
@@ -17,42 +17,44 @@ struct event {
     }
 };
 
-struct SegTree {
-    vector <int> vec, val, fre;
+struct segmenttree {
+    int n;
+    vector <int> vecData, vecValue, vecStatus;
 
-    SegTree() {}
-    SegTree(vector <int> _vec) {
-        vec = _vec;
-        val.assign(vec.size() * 4, 0);
-        fre.assign(vec.size() * 4, 0);
+    segmenttree() {}
+    segmenttree(vector <int> &_vecData) {
+        vecData = _vecData;
+        n = vecData.size();
+        vecValue.resize(n * 4), vecStatus.resize(n * 4);
     }
 
-    void update(int id, int l, int r, int x, int y, int v) {
-        if (l > y || r < x) return;
-        if (x <= l && r <= y) {
-            fre[id] += v;
-            if (fre[id]) {
-                val[id] = vec[r + 1] - vec[l];
+    void update(int id, int l, int r, int i, int j, int value) {
+        if (j < l || i > r) {
+            return;
+        }
+        if (i <= l && r <= j) {
+            vecStatus[id] += value;
+            if (vecStatus[id]) {
+                vecValue[id] = vecData[r + 1] - vecData[l];
             } else if (l != r) {
-                val[id] = val[id * 2 + 1] + val[id * 2 + 2];
+                vecValue[id] = vecValue[id * 2 + 1] + vecValue[id * 2 + 2];
             } else {
-                val[id] = 0;
+                vecValue[id] = 0;
             }
             return;
         }
         int m = (l + r) / 2;
-        update(id * 2 + 1, l, m, x, y, v);
-        update(id * 2 + 2, m + 1, r, x, y, v);
-        if (fre[id]) {
-            val[id] = vec[r + 1] - vec[l];
+        update(id * 2 + 1, l, m, i, j, value);
+        update(id * 2 + 2, m + 1, r, i, j, value);
+        if (vecStatus[id]) {
+            vecValue[id] = vecData[r + 1] - vecData[l];
         } else {
-            val[id] = val[id * 2 + 1] + val[id * 2 + 2];
+            vecValue[id] = vecValue[id * 2 + 1] + vecValue[id * 2 + 2];
         }
     }
 };
 
-int n, xl, yl, xr, yr;;
-ll area;
+int n;
 
 void Task() {
     ios_base :: sync_with_stdio(false); cin.tie(0); cout.tie(0);
@@ -64,26 +66,30 @@ void Task() {
 
 void Solve() {
     cin >> n;
-    vector <event> vecE;
-    set <int> setY;
-    for (int i = 0; i < n; ++i) {
-        cin >> xl >> yl >> xr >> yr;
-        vecE.push_back(event(xl, yl, yr, 1));
-        vecE.push_back(event(xr, yl, yr, - 1));
-        setY.insert(yl);
-        setY.insert(yr);
+    vector <int> vecY;
+    vector <event> vecEvent;
+    while (n--) {
+        int x1, y1, x2, y2;
+        cin >> x1 >> y1 >> x2 >> y2;
+        if (x1 == x2) continue;
+        vecY.push_back(y1);
+        vecY.push_back(y2);
+        vecEvent.push_back(event(x1, y1, y2, 1));
+        vecEvent.push_back(event(x2, y1, y2, - 1));
     }
-    sort(vecE.begin(), vecE.end());
-    vector <int> vecY(setY.begin(), setY.end());
-    SegTree ST(vecY);
-    for (int i = 0; i + 1 < vecE.size(); ++i) {
-        event e = vecE[i];
-        int l = lower_bound(vecY.begin(), vecY.end(), e.yl) - vecY.begin();
-        int r = lower_bound(vecY.begin(), vecY.end(), e.yr) - vecY.begin() - 1;
-        ST.update(0, 0, vecY.size() - 2, l, r, e.val);
-        area += (ll)ST.val[0] * (vecE[i + 1].x - vecE[i].x);
+    sort(vecEvent.begin(), vecEvent.end());
+    sort(vecY.begin(), vecY.end());
+    vecY.erase(unique(vecY.begin(), vecY.end()), vecY.end());
+    segmenttree stArea(vecY);
+    int nY = vecY.size();
+    ll ans = 0;
+    for (int i = 0; i + 1 < vecEvent.size(); ++i) {
+        int l = lower_bound(vecY.begin(), vecY.end(), vecEvent[i].y1) - vecY.begin();
+        int r = lower_bound(vecY.begin(), vecY.end(), vecEvent[i].y2) - vecY.begin() - 1;
+        stArea.update(0, 0, nY - 2, l, r, vecEvent[i].value);
+        ans += (ll)stArea.vecValue[0] * (vecEvent[i + 1].x - vecEvent[i].x);
     }
-    cout << area;
+    cout << ans;
 }
 
 int main() {

@@ -3,12 +3,11 @@
 using namespace std;
 
 typedef long long ll;
-typedef long double ld;
 
 const int INF = 1e9;
 
 struct point {
-    int x, y, id;
+    int x, y, index;
 
     point() {}
     point(int _x, int _y) {
@@ -25,8 +24,6 @@ struct point {
 };
 
 int n;
-ll mind;
-pair <int, int> id;
 vector <point> vecP;
 
 void Task() {
@@ -37,28 +34,29 @@ void Task() {
     }
 }
 
-bool operator < (point a, point b) {
-    return a.y != b.y ? a.y < b.y : a.id < b.id;
+bool operator < (point pa, point pb) {
+    return pa.y != pb.y ? pa.y < pb.y : pa.index < pb.index;
 }
 
-bool cmp(point a, point b) {
-    return a.x != b.x ? a.x < b.x : a.y < b.y;
+bool cmp(point pa, point pb) {
+    return pa.x != pb.x ? pa.x < pb.x : pa.y < pb.y;
 }
 
 void Solve() {
-    mind = (ll)INF * INF;
     cin >> n;
     vecP.resize(n);
     for (int i = 0; i < n; ++i) {
         cin >> vecP[i].x >> vecP[i].y;
-        vecP[i].id = i;
+        vecP[i].index = i;
     }
     sort(vecP.begin(), vecP.end(), cmp);
     set <point> setP;
+    ll ans = 1e18;
+    pair <int, int> pos;
     for (int i = 0; i < n; ++i) {
-        int d = (int)ceil(sqrt(mind));
-        point p = point( - INF, vecP[i].y - d);
-        p.id = vecP[i].id;
+        int d = ceil(sqrt(ans));
+        point p = point(- INF, vecP[i].y - d);
+        p.index = vecP[i].index;
         while (true) {
             auto it = setP.upper_bound(p);
             if (it == setP.end() || (*it).y > vecP[i].y + d) break;
@@ -67,17 +65,19 @@ void Solve() {
                 setP.erase(p);
                 continue;
             }
-            ll currd = (p - vecP[i]).norm2();
-            if (currd < mind) {
-                mind = currd;
-                id = {p.id, vecP[i].id};
+            ll d1 = (vecP[i] - p).norm2();
+            if (d1 < ans) {
+                ans = d1;
+                pos = {p.index, vecP[i].index};
             }
         }
         setP.insert(vecP[i]);
     }
-    if (id.first > id.second) swap(id.first, id.second);
-    cout << id.first << " " << id.second << " ";
-    cout << fixed << setprecision(6) << sqrt(mind);
+    if (pos.first > pos.second) {
+        swap(pos.first, pos.second);
+    }
+    cout << pos.first << " " << pos.second << "\n";
+    cout << fixed << setprecision(6) << sqrt(ans);
 }
 
 int main() {
