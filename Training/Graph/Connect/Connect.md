@@ -1,0 +1,1 @@
+https://oj.vnoi.info/problem/vpc23_d
