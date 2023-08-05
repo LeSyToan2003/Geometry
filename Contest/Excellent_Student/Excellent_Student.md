@@ -1,1 +1,0 @@
-https://coder.husc.edu.vn/contest/colp0001
