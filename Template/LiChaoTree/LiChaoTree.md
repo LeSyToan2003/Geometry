@@ -1,0 +1,1 @@
+https://judge.yosupo.jp/problem/line_add_get_min
