@@ -19,9 +19,14 @@ struct line {
     }
 };
 
+struct segment {
+    int l, r;
+    line li;
+};
+
 struct query {
     int t, x;
-    line l;
+    segment s;
 };
 
 struct lichaotree {
@@ -35,7 +40,7 @@ struct lichaotree {
         vecL.assign(n * 4, line(0, INF));
     }
 
-    void update(int id, int l, int r, line li) {
+    void updateLine(int id, int l, int r, line li) {
         if (l == r) {
             if (li.getY(vecX[l]) < vecL[id].getY(vecX[l])) {
                 vecL[id] = li;
@@ -48,11 +53,28 @@ struct lichaotree {
         int m = (l + r) / 2;
         int left = id * 2 + 1, right = id * 2 + 2;
         if (li.getY(vecX[m]) > vecL[id].getY(vecX[m])) {
-            update(left, l, m, li);
+            updateLine(left, l, m, li);
         } else {
             swap(li, vecL[id]);
-            update(right, m + 1, r, li);
+            updateLine(right, m + 1, r, li);
         }
+    }
+
+    void updateSegment(int id, int l, int r, segment s) {
+        if (l > r) {
+            return;
+        }
+        if (s.r < vecX[l] || s.l > vecX[r]) {
+            return;
+        }
+        if (s.l <= vecX[l] && vecX[r] <= s.r) {
+            updateLine(id, l, r, s.li);
+            return;
+        }
+        int m = (l + r) / 2;
+        int left = id * 2 + 1, right = id * 2 + 2;
+        updateSegment(left, l, m, s);
+        updateSegment(right, m + 1, r, s);
     }
 
     ll query(int id, int l, int r, int x) {
@@ -70,7 +92,7 @@ struct lichaotree {
 };
 
 int n, q;
-vector <line> vecL;
+vector <segment> vecS;
 vector <query> vecQuery;
 
 void Task() {
@@ -83,16 +105,18 @@ void Task() {
 
 void Solve() {
     cin >> n >> q;
-    vecL.resize(n + 1);
+    vecS.resize(n + 1);
     for (int i = 1; i <= n; ++i) {
-        cin >> vecL[i].a >> vecL[i].b;
+        cin >> vecS[i].l >> vecS[i].r >> vecS[i].li.a >> vecS[i].li.b;
+        vecS[i].r--;
     }
     vecQuery.resize(q + 1);
     vector <int> vecX;
     for (int i = 1; i <= q; ++i) {
         cin >> vecQuery[i].t;
         if (!vecQuery[i].t) {
-            cin >> vecQuery[i].l.a >> vecQuery[i].l.b;
+            cin >> vecQuery[i].s.l >> vecQuery[i].s.r >> vecQuery[i].s.li.a >> vecQuery[i].s.li.b;
+            vecQuery[i].s.r--;
         } else {
             cin >> vecQuery[i].x;
             vecX.push_back(vecQuery[i].x);
@@ -101,16 +125,20 @@ void Solve() {
     sort(vecX.begin(), vecX.end());
     vecX.erase(unique(vecX.begin(), vecX.end()), vecX.end());
     int nX = vecX.size();
-    lichaotree lctA(vecX);
+    lichaotree lctA = lichaotree(vecX);
     for (int i = 1; i <= n; ++i) {
-        lctA.update(0, 0, nX - 1, vecL[i]);
+        lctA.updateSegment(0, 0, nX - 1, vecS[i]);
     }
     for (int i = 1; i <= q; ++i) {
         if (!vecQuery[i].t) {
-            lctA.update(0, 0, nX - 1, vecQuery[i].l);
+            lctA.updateSegment(0, 0, nX - 1, vecQuery[i].s);
         } else {
             ll ans = lctA.query(0, 0, nX - 1, vecQuery[i].x);
-            cout << ans << "\n";
+            if (ans != INF) {
+                cout << ans << "\n";
+            } else {
+                cout << "INFINITY\n";
+            }
         }
     }
 }
