@@ -4,18 +4,7 @@ using namespace std;
 
 typedef long long ll;
 
-const int MAXX = 1e9;
 const ll INF = 9e18;
-
-struct query {
-    int t, p;
-    ll a, b;
-
-    query() {}
-    query(int _t, ll _a, ll _b, int _p) {
-        t = _t, a = _a, b = _b, p = _p;
-    }
-};
 
 struct line {
     ll a, b;
@@ -30,49 +19,53 @@ struct line {
     }
 };
 
+struct query {
+    int t, x;
+    line l;
+};
+
 struct lichaotree {
-    int n;
     vector <int> vecX;
     vector <line> vecL;
 
     lichaotree() {}
     lichaotree(vector <int> _vecX) {
         vecX = _vecX;
-        n = 1 << (int)ceil(log2(vecX.size()));
-        while (vecX.size() < n) {
-            vecX.push_back(MAXX);
-        }
+        int n = vecX.size();
         vecL.assign(n * 4, line(0, INF));
     }
 
-    void update(line li) {
-        update(1, 0, n - 1, li);
-    }
-
     void update(int id, int l, int r, line li) {
-        int m = (l + r) / 2, x = vecX[m];
-        if (li.getY(x) < vecL[id].getY(x)) {
-            swap(vecL[id], li);
-        }
         if (l == r) {
+            if (li.getY(vecX[l]) < vecL[id].getY(vecX[l])) {
+                vecL[id] = li;
+            }
             return;
         }
-        int left = id * 2, right = id * 2 + 1;
-        if (li.a > vecL[id].a) {
+        if (li.a < vecL[id].a) {
+            swap(li, vecL[id]);
+        }
+        int m = (l + r) / 2;
+        int left = id * 2 + 1, right = id * 2 + 2;
+        if (li.getY(vecX[m]) > vecL[id].getY(vecX[m])) {
             update(left, l, m, li);
-        } else if (li.a < vecL[id].a) {
+        } else {
+            swap(li, vecL[id]);
             update(right, m + 1, r, li);
         }
     }
 
-    ll query(int x) {
-        int id = lower_bound(vecX.begin(), vecX.end(), x) - vecX.begin() + n;
-        ll ans = INF;
-        while (id >= 1) {
-            ans = min(ans, vecL[id].getY(x));
-            id /= 2;
+    ll query(int id, int l, int r, int x) {
+        ll ans = vecL[id].getY(x);
+        if (l == r) {
+            return ans;
         }
-        return ans;
+        int m = (l + r) / 2;
+        int left = id * 2 + 1, right = id * 2 + 2;
+        if (x <= vecX[m]) {
+            return min(ans, query(left, l, m, x));
+        }
+        return min(ans, query(right, m + 1, r, x));
     }
 };
 
@@ -97,31 +90,26 @@ void Solve() {
     vecQuery.resize(q + 1);
     vector <int> vecX;
     for (int i = 1; i <= q; ++i) {
-        int t;
-        cin >> t;
-        if (!t) {
-            ll a, b;
-            cin >> a >> b;
-            vecQuery[i] = query(t, a, b, 0);
+        cin >> vecQuery[i].t;
+        if (!vecQuery[i].t) {
+            cin >> vecQuery[i].l.a >> vecQuery[i].l.b;
         } else {
-            int p;
-            cin >> p;
-            vecQuery[i] = query(t, 0, 0, p);
-            vecX.push_back(p);
+            cin >> vecQuery[i].x;
+            vecX.push_back(vecQuery[i].x);
         }
     }
     sort(vecX.begin(), vecX.end());
     vecX.erase(unique(vecX.begin(), vecX.end()), vecX.end());
+    int nX = vecX.size();
     lichaotree lctA(vecX);
     for (int i = 1; i <= n; ++i) {
-        lctA.update(vecL[i]);
+        lctA.update(0, 0, nX - 1, vecL[i]);
     }
     for (int i = 1; i <= q; ++i) {
-        query query = vecQuery[i];
-        if (!query.t) {
-            lctA.update(line(query.a, query.b));
+        if (!vecQuery[i].t) {
+            lctA.update(0, 0, nX - 1, vecQuery[i].l);
         } else {
-            ll ans = lctA.query(query.p);
+            ll ans = lctA.query(0, 0, nX - 1, vecQuery[i].x);
             cout << ans << "\n";
         }
     }
