@@ -1,0 +1,1 @@
+https://codeforces.com/gym/104252/problem/G
