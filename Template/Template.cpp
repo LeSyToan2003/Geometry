@@ -5,312 +5,224 @@
 using namespace std;
 using namespace __gnu_pbds;
 
-typedef long long ll;
 typedef long double ld;
+typedef tree <int, null_type, less <int>, rb_tree_tag, tree_order_statistics_node_update> orderedset;
 
-const ll mod = 1e9 + 7;
-const ld INF = 1e9 + 9;
-const ld eps = 1e-9;
-const ld pi = acos(- 1);
-tree <int, null_type, less<int>, rb_tree_tag, tree_order_statistics_node_update> Tree;
+const ld EPS = 1e-9;
+const ld PI = acos(- 1);
+const ld INF = 1e18;
 
 bool eq(ld a, ld b) {
-    return abs(a - b) <= eps;
+    return abs(a - b) <= EPS;
 }
 
 bool lt(ld a, ld b) {
-    return a < b - eps;
-}
-
-bool gt(ld a, ld b) {
-    return a > b + eps;
+    return a < b - EPS;
 }
 
 bool leq(ld a, ld b) {
-    return a <= b + eps;
+    return a <= b + EPS;
 }
 
-bool geq(ld a, ld b) {
-    return a >= b - eps;
-}
-
-int sign(ld a) {
-    return (eq(a, 0) ? 0 : (gt(a, 0) ? 1 : - 1));
-}
-
-struct point {
-    // Coordinate
+struct Point {
     ld x, y;
 
-    // Constructor
-    point() {}
-    point(ld a, ld b) {
-        x = a;
-        y = b;
+    Point() {}
+    Point(ld _x, ld _y) {
+        x = _x, y = _y;
     }
 
-    bool operator == (point p) {
+    bool operator == (Point p) {
         return eq(x, p.x) && eq(y, p.y);
     }
 
-    bool operator != (point p) {
-        return !eq(x, p.x) || !eq(y, p.y);
-    }
-
-    bool operator < (point p) {
+    bool operator < (Point p) {
         return !eq(y, p.y) ? lt(y, p.y) : lt(x, p.x);
     }
 
-    bool operator > (point p) {
-        return !eq(y, p.y) ? gt(y, p.y) : gt(x, p.x);
+    Point operator + (Point p) {
+        return Point(x + p.x, y + p.y);
     }
 
-    point operator + (point p) {
-        return point(x + p.x, y + p.y);
+    Point operator - (Point p) {
+        return Point(x - p.x, y - p.y);
     }
 
-    point operator - (point p) {
-        return point(x - p.x, y - p.y);
+    Point operator * (ld k) {
+        return Point(x * k, y * k);
     }
 
-    point operator * (ld k) {
-        return point(x * k, y * k);
+    Point operator / (ld k) {
+        return Point(x / k, y / k);
     }
 
-    point operator / (ld k) {
-        return point(x / k, y / k);
+    Point rotating(ld a) {
+        return Point(x * cos(a) - y * sin(a), x * sin(a) + y * cos(a));
     }
 
-    // Length of a vector
+    Point rotating(Point p, ld a) {
+        return (*this - p).rotating(a) + p;
+    }
+
     ld norm() {
         return hypot(x, y);
     }
 
-    // Square of the length of a vector
     ld norm2() {
         return x * x + y * y;
     }
 
-    // Unit vector
-    point unit() {
-        return point(x / norm(), y / norm());
-    }
-
-    // Dot product
-    ld dot(point p) {
+    ld dot(Point p) {
         return x * p.x + y * p.y;
     }
 
-    // Cross Product
-    ld cross(point p) {
+    ld cross(Point p) {
         return x * p.y - y * p.x;
     }
 
-    // Rotating about origin O(0;0)
-    point rot(ld angle) {
-        return point(x * cos(angle) - y * sin(angle), x * sin(angle) + y * cos(angle));
+    ld area(Point pa, Point pb) {
+        return abs((pa - *this).cross(pb - *this));
     }
 
-    // Rotating about a point p
-    point rot(point p, ld angle) {
-        return (*this - p).rot(angle) + p;
+    ld dist_line(Point pa, Point pb) {
+        return area(pa, pb) / (pa - pb).norm();
     }
 
-    // Projection of a point onto a line
-    point proj(point pa, point pb) {
-        return pa + (pb - pa) * ((pa - pb).dot(pa - *this) / (pa - pb).norm2());
-    }
-
-    // Reflection of a point over a line
-    point refl(point pa, point pb) {
-        return proj(pa, pb) * 2 - *this;
-    }
-
-    //Distance from a point to a segment
-    ld sdist(point pa, point pb) {
-        ld res;
-        ld a = (pa - *this).norm2();
-        ld b = (pb - *this).norm2();
-        ld c = (pa - pb).norm2();
-        if (a > b + c) {
-            res = sqrt(b);
+    ld dist_segment(Point pa, Point pb) {
+        ld a = (pa - *this).norm(), b = (pb - *this).norm(), c = (pa - pb).norm();
+        if (lt(a * a + c * c, b * b)) {
+            return a;
         }
-        else if (b > a + c) {
-            res = sqrt(a);
+        if (lt(b * b + c * c, a * a)) {
+            return b;
         }
-        else {
-            res = area(pa, pb) / sqrt(c);
+        return area(pa, pb) / c;
+    }
+
+    int ccw(Point pa, Point pb) {
+        ld c = (pa - *this).cross(pb - *this);
+        return eq(c, 0) ? 0 : (c > 0 ? 1 : - 1);
+    }
+
+    bool on(Point pa, Point pb) {
+        return !ccw(pa, pb) && leq((pa - *this).dot(pb - *this), 0);
+    }
+
+    Point projection(Point pa, Point pb) {
+        ld a = (pa - *this).norm(), b = (pb - *this).norm(), c = (pa - pb).norm();
+        ld h = area(pa, pb) / c, d = sqrt(a * a - h * h);
+        if (lt(a * a + c * c, b * b)) {
+            return (pa - pb) * (d + c) / c + pb;
         }
-        return res;
+        return (pb - pa) * d / c + pa;
     }
 
-    // Distance from a point to a line
-    ld ldist(point pa, point pb) {
-        return (proj(pa, pb) - *this).norm();
+    Point reflection(Point pa, Point pb) {
+        return projection(pa, pb) * 2 - *this;
     }
 
-    // Area of Triangle
-    ld area(point pa, point pb) {
-        return abs((pa - *this).cross(pb - *this)) / 2;
-    }
-
-    // Orientation of three points
-    int ccw(point pa, point pb) {
-        return sign((pa - *this).cross(pb - *this));
-    }
-
-    // A point lies on a segment
-    bool on(point pa, point pb) {
-        return ccw(pa, pb) ? false : leq((pa - *this).dot(pb - *this), 0);
-    }
-
-    // A point lies inside or outside a simple polygon - O(N)
-    bool insp(vector <point> &p) {
-        int cnt = 0;
-        int n = p.size();
+    bool inSP(vector <Point> &vecP) {
+        int n = vecP.size(), cnt = 0;
         for (int i = 0; i < n; ++i) {
-            int ii = (i + 1) % n;
-            if (on(p[i], p[ii])) {
+            int iNext = (i + 1) % n;
+            Point pa = vecP[i], pb = vecP[iNext];
+            if (on(pa, pb)) {
                 return true;
             }
-            point pa = p[i];
-            point pb = p[ii];
-            if (pb.y < pa.y) {
+            if (pa.y > pa.y) {
                 swap(pa, pb);
             }
-            if (lt(pa.y, y) && leq(y, pb.y) && ccw(pa, pb) < 0) {
+            if (leq(pa.y, y) && lt(y, pb.y) && ccw(pa, pb) < 0) {
                 cnt++;
             }
         }
         return cnt % 2;
     }
 
-    // A point lies inside or outside a convex polygon - O(logN)
-    bool incp(vector <point> &p) {
-        int n = p.size();
-        if (on(p[0], p[1]) || on(p[0], p[n - 1])) {
+    bool inCP(vector <Point> &vecP) {
+        int n = vecP.size();
+        if (on(vecP[0], vecP[1]) || on(vecP[0], vecP[n - 1])) {
             return true;
         }
-        int l = 2;
-        int r = n - 1;
+        int l = 2, r = n - 1;
         while (l < r) {
             int m = (l + r) / 2;
-            if (ccw(p[0], p[m]) <= 0) {
+            if (ccw(vecP[0], vecP[m]) <= 0) {
                 r = m;
             }
             else {
                 l = m + 1;
             }
         }
-        if (on(p[r - 1], p[r])) {
+        if (on(vecP[r - 1], vecP[r])) {
             return true;
         }
-        vector <point> tri = {p[0], p[r - 1], p[r]};
-        return insp(tri);
-    }
-
-    // A point lies inside or outside a circle
-    bool inc(point p, ld r) {
-        return (p - *this).norm2() <= r * r;
+        vector <Point> vecP1 = {vecP[0], vecP[r - 1], vecP[r]};
+        return inSP(vecP1);
     }
 };
 
-struct line {
-    // Endpoints
-    point M, N;
+struct Segment {
+    Point M, N;
 
-    // Constructor
-    line() {}
-    line(point M, point N) {
-        (*this).M = M;
-        (*this).N = N;
+    Segment() {}
+    Segment(Point _M, Point _N) {
+        M = _M, N = _N;
     }
 
-    // Direction of a line
-    point dir() {
-        return N - M;
-    }
-
-    // Two lines can intersect
-    bool lits(line l) {
-        return !eq(dir().cross(l.dir()), 0);
-    }
-
-    // Two segments can intersect
-    bool sits(line l) {
-        if (M.on(l.M, l.N) || N.on(l.M, l.N) || l.M.on(M, N) || l.N.on(M, N)) {
+    bool is_its(Segment s) {
+        if (M.on(s.M, s.N) || N.on(s.M, s.N) || s.M.on(M, N) || s.N.on(M, N)) {
             return true;
         }
-        return M.ccw(l.M, l.N) != N.ccw(l.M, l.N) && l.M.ccw(M, N) != l.N.ccw(M, N);
+        return M.ccw(s.M, s.N) != N.ccw(s.M, s.N) && s.M.ccw(M, N) != s.N.ccw(M, N);
     }
 
-    // Intersection of two lines
-    point its(line l) {
-        return M + dir() * (l.dir().cross(M - l.M) / dir().cross(l.dir()));
+    Point its(Segment s) {
+        return (N - M) * (s.N - s.M).cross(M - s.M) / (N - M).cross(s.N - s.M) + M;
     }
 
-    // Cut a simple polygon
-    vector <point> Cut(vector <point> &p) {
-        vector <point> res;
-        int n = p.size();
+    vector <Point> cutP(vector <Point> &vecP) {
+        vector <Point> vecAns;
+        int n = vecP.size();
         for (int i = 0; i < n; ++i) {
-            if (p[i].ccw(M, N) >= 0) {
-                res.push_back(p[i]);
+            int iNext = (i + 1) % n;
+            if (vecP[i].ccw(M, N) >= 0) {
+                vecAns.push_back(vecP[i]);
             }
-            int ii = (i + 1) % n;
-            if (p[i].ccw(M, N) * p[ii].ccw(M, N) < 0) {
-                res.push_back(its(line(p[i], p[ii])));
+            if (vecP[i].ccw(M, N) * vecP[iNext].ccw(M, N) < 0) {
+                vecAns.push_back(its(Segment(vecP[i], vecP[iNext])));
             }
         }
-        return res;
+        return vecAns;
     }
 
-    // Cut the circle
-    vector <point> Cut(point center, ld r) {
-        vector <point> res;
-        if (leq(center.ldist(M, N), r)) {
-            point p = center.proj(M, N);
-            point u = (N - M).unit();
-            ld l = (center - p).norm2();
-            ld d = sqrt(max((ld)0, r * r - l));
-            res = {p - u * d, p + u * d};
-        }
-        return res;
+    vector <Point> cutC(Point p, ld r) {
+        vector <Point> vecAns;
+        Point pa = p.projection(M, N), pb = (N - M) / (N - M).norm();
+        ld h = (p - pa).norm(), d = sqrt(r * r - h * h);
+        vecAns = {pa - pb * d, pa + pb * d};
+        return vecAns;
     }
 };
 
-struct circle {
-    // Center I and Radius r
-    point I;
+struct Circle {
+    Point center;
     ld r;
 
-    // Constructor
-    circle() {}
-    circle(point p, ld a) {
-        I = p, r = a;
+    Circle() {}
+    Circle(Point _center, ld _r) {
+        center = _center, r = _r;
     }
 
-    // Check: Circle contains other circle
-    bool contain(circle c) {
-        return leq((I - c.I).norm() + c.r, r);
-    }
-
-    // Check: Two circles can intersect
-    bool cits(circle c) {
-        ld d = (I - c.I).norm2();
-        return (r - c.r) * (r - c.r) <= d && d <= (r + c.r) * (r + c.r);
-    }
-
-    // Return: Intersections of two circles
-    vector <point> its(circle c) {
-        vector <point> res;
-        ld d = (I - c.I).norm();
-        ld l = (r * r - c.r * c.r + d * d) / (d * 2.0);
-        ld h = sqrt(abs(r * r - l * l));
-        point p1 = I + (point(l * (c.I.x - I.x) + h * (c.I.y - I.y), l * (c.I.y - I.y) - h * (c.I.x - I.x))) / d;
-        point p2 = I + (point(l * (c.I.x - I.x) - h * (c.I.y - I.y), l * (c.I.y - I.y) + h * (c.I.x - I.x))) / d;
-        res = {p1, p2};
-        return res;
+    vector <Point> its(Circle c) {
+        vector <Point> vecAns(2);
+        ld d = (center - c.center).norm();
+        ld a = acos((r * r + d * d - c.r * c.r) / (2 * r * d));
+        ld l = r * cos(a), h = r * sin(a);
+        Point pa = (c.center - center) * l / d + center, pb = (center - pa) * h / (center - pa).norm() + pa;
+        vecAns[0] = pb.rotating(pa, PI / 2);
+        vecAns[1] = pb.rotating(pa, - PI / 2);
+        return vecAns;
     }
 };
 
@@ -322,103 +234,102 @@ void Task() {
     }
 }
 
-// Convexhull - O(NlogN)
-vector <point> ConvexHull(vector <point> p) {
-    vector <point> res;
-    sort(p.begin(), p.end());
-    res = p;
-    if (p.size() >= 3) {
-        int n = p.size();
-        int sz = 0;
-        res.resize(n + 1);
-        for (int i = 1; i < n; ++i) {
-            if (i == n - 1 || p[0].ccw(p[i], p[n - 1]) > 0) {
-                while (sz > 0 && res[sz - 1].ccw(res[sz], p[i]) <= 0) {
-                    sz--;
-                }
-                res[++sz] = p[i];
-            }
-        }
-        for (int i = n - 2, j = sz; i >= 0; --i) {
-            if (i == 0 || p[n - 1].ccw(p[i], p[0]) > 0) {
-                while (sz > j && res[sz - 1].ccw(res[sz], p[i]) <= 0) {
-                    sz--;
-                }
-                res[++sz] = p[i];
-            }
-        }
-        res.resize(sz);
-    }
-    return res;
+int sign(ld a) {
+    return eq(a, 0) ? 0 : (a > 0 ? 1 : - 1);
 }
 
-// Area of a simple polygon - O(N)
-ld Area(vector <point> &p) {
-    ld area = 0;
-    int n = p.size();
+ld Area(vector <Point> &vecP) {
+    ld ans = 0;
+    int n = vecP.size();
     for (int i = 0; i < n; ++i) {
-        int ii = (i + 1) % n;
-        area += p[i].cross(p[ii]);
+        int iNext = (i + 1) % n;
+        ans += vecP[i].cross(vecP[iNext]);
     }
-    return abs(area) / 2;
+    return ans / 2;
 }
 
-// Intersection of two convex polygons - O(N^2)
-vector <point> Intersection(vector <point> p1, vector <point> p2) {
-    vector <point> res;
-    int n = p1.size();
-    int m = p2.size();
-    for (int i = 0; i < n; ++i) {
-        int ii = (i + 1) % n;
-        line li = line(p1[i], p1[ii]);
-        for (int j = 0; j < m; ++j) {
-            int jj = (j + 1) % m;
-            line lj = line(p2[j], p2[jj]);
-            if (li.lits(lj) && li.sits(lj)) {
-                res.push_back(li.its(lj));
+vector <Point> Convex_Hull(vector <Point> vecP) {
+    sort(vecP.begin(), vecP.end());
+    int n = vecP.size(), nAns = 0;
+    if (n < 3) {
+        return vecP;
+    }
+    vector <Point> vecAns = vecP;
+    vecAns.resize(n + 1);
+    for (int i = 1; i < n; ++i) {
+        if (i == n - 1 || vecP[0].ccw(vecP[i], vecP[n - 1]) > 0) {
+            while (nAns && vecAns[nAns - 1].ccw(vecAns[nAns], vecP[i]) <= 0) {
+                nAns--;
+            }
+            vecAns[++nAns] = vecP[i];
+        }
+    }
+    for (int i = n - 2, j = nAns; i >= 0; --i) {
+        if (!i || vecP[n - 1].ccw(vecP[i], vecP[0]) > 0) {
+            while (nAns > j && vecAns[nAns - 1].ccw(vecAns[nAns], vecP[i]) <= 0) {
+                nAns--;
+            }
+            vecAns[++nAns] = vecP[i];
+        }
+    }
+    vecAns.resize(nAns);
+    return vecAns;
+}
+
+vector <Point> Its_CP(vector <Point> vecP1, vector <Point> vecP2) {
+    vector <Point> vecAns;
+    int n1 = vecP1.size(), n2 = vecP2.size();
+    for (int i = 0; i < n1; ++i) {
+        int iNext = (i + 1) % n1;
+        for (int j = 0; j < n2; ++j) {
+            int jNext = (j + 1) % n2;
+            Segment sa = Segment(vecP1[i], vecP1[iNext]), sb = Segment(vecP2[j], vecP2[jNext]);
+            if (eq((sa.N - sa.M).cross(sb.N - sb.M), 0)) {
+                continue;
+            }
+            if (!sa.is_its(sb)) {
+                continue;
+            }
+            vecAns.push_back(sa.its(sb));
+        }
+    }
+    for (auto p : vecP1) {
+        if (p.inSP(vecP2)) {
+            vecAns.push_back(p);
+        }
+    }
+    for (auto p : vecP2) {
+        if (p.inSP(vecP1)) {
+            vecAns.push_back(p);
+        }
+    }
+    vecAns = Convex_Hull(vecAns);
+    return vecAns;
+}
+
+ld Its_SP(vector <Point> vecP1, vector <Point> vecP2) {
+    ld ans = 0;
+    if (lt(Area(vecP1), 0)) {
+        reverse(vecP1.begin(), vecP1.end());
+    }
+    if (lt(Area(vecP2), 0)) {
+        reverse(vecP2.begin(), vecP2.end());
+    }
+    int n1 = vecP1.size(), n2 = vecP2.size();
+    Point p = Point(- INF, - INF);
+    for (int i = 0; i < n1; ++i) {
+        int iNext = (i + 1) % n1;
+        for (int j = 0; j < n2; ++j) {
+            int jNext = (j + 1) % n2;
+            if (p.ccw(vecP1[i], vecP1[iNext]) && p.ccw(vecP2[j], vecP2[jNext])) {
+                vector <Point> vecP3 = {p, vecP1[i], vecP1[iNext]};
+                vector <Point> vecP4 = {p, vecP2[j], vecP2[jNext]};
+                vector <Point> vecP5 = Its_CP(vecP3, vecP4);
+                ans += Area(vecP5) * sign(Area(vecP3)) * sign(Area(vecP4));
             }
         }
     }
-    for (auto p : p1) {
-        if (p.insp(p2)) {
-            res.push_back(p);
-        }
-    }
-    for (auto p : p2) {
-        if (p.insp(p1)) {
-            res.push_back(p);
-        }
-    }
-    res = ConvexHull(res);
-    return res;
-}
-
-// Area of the intersection of two simple polygons - O(N^2)
-ld Area_of_Intersection(vector <point> p1, vector <point> p2) {
-    ld area = 0;
-    if (lt(Area(p1), 0)) {
-        reverse(p1.begin(), p1.end());
-    }
-    if (lt(Area(p2), 0)) {
-        reverse(p2.begin(), p2.end());
-    }
-    int n = p1.size();
-    int m = p2.size();
-    point pa = point(- INF, - INF);
-    for (int i = 0; i < n; ++i) {
-        int ii = (i + 1) % n;
-        for (int j = 0; j < m; ++j) {
-            int jj = (j + 1) % m;
-            if (pa.ccw(p1[i], p1[ii]) && pa.ccw(p2[j], p2[jj])) {
-                vector <point> t1 = {pa, p1[i], p1[ii]};
-                vector <point> t2 = {pa, p2[j], p2[jj]};
-                vector <point> p = Intersection(t1, t2);
-                area += Area(p) * sign(Area(t1)) * sign(Area(t2));
-            }
-        }
-    }
-    area = abs(area);
-    return area;
+    return abs(ans);
 }
 
 void Solve() {
