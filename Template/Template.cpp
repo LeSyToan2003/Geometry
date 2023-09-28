@@ -203,6 +203,53 @@ struct Segment {
         vecAns = {pa - pb * d, pa + pb * d};
         return vecAns;
     }
+
+    ld its(vector <Point> &vecP) {
+        ld ans = 0;
+        int n = vecP.size();
+        vector <Point> vecP1;
+        for (int i = 0; i < n; ++i) {
+            int iPrev = (i - 1 + n) % n, iNext = (i + 1) % n, iNext2 = (i + 2) % n;
+            Segment s = Segment(vecP[i], vecP[iNext]);
+            if (!is_its(s)) {
+                continue;
+            }
+            Point p = its(s);
+            if (!vecP1.empty() && (p == vecP1[0] || p == vecP1.back())) {
+                continue;
+            }
+            bool valid = false;
+            if ((!vecP[iPrev].ccw(M, N) && !vecP[i].ccw(M, N)) || (!vecP[iNext].ccw(M, N) && !vecP[iNext2].ccw(M, N))) {
+                if (p == vecP[i]) {
+                    if (vecP[iPrev].ccw(vecP[i], vecP[iNext]) > 0) {
+                        valid = true;
+                    }
+                } else if (p == vecP[iNext]) {
+                    if (vecP[i].ccw(vecP[iNext], vecP[iNext2]) > 0) {
+                        valid = true;
+                    }
+                }
+            } else if (p == vecP[i]) {
+                if (vecP[iPrev].ccw(M, N) != vecP[iNext].ccw(M, N)) {
+                    valid = true;
+                }
+            } else if (p == vecP[iNext]) {
+                if (vecP[i].ccw(M, N) != vecP[iNext2].ccw(M, N)) {
+                    valid = true;
+                }
+            } else {
+                valid = true;
+            }
+            if (valid) {
+                vecP1.push_back(p);
+            }
+        }
+        sort(vecP1.begin(), vecP1.end());
+        for (int i = 0; i + 1 < vecP1.size(); i += 2) {
+            ans += (vecP1[i] - vecP1[i + 1]).norm();
+        }
+        return ans;
+    }
 };
 
 struct Circle {
