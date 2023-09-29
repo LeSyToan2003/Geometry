@@ -4,6 +4,7 @@ using namespace std;
 
 const int MOD = 2023;
 
+vector <int> vecValue;
 // mảng 3 chiều để lưu tổng cộng n ma trận 2 chiều
 vector <vector <vector <int>>> vecMatrix;
 
@@ -22,6 +23,9 @@ vector <vector <int>> Mul(vector <vector <int>> vecA, vector <vector <int>> vecB
 
     for (int i = 1; i <= n; ++i) {
         for (int j = 1; j <= n; ++j) {
+            if (i == j || vecValue[i] > vecValue[j]) {
+                continue;
+            }
             for (int k = 1; k <= n; ++k) {
                 vecAns[i][j] = (vecAns[i][j] + vecA[i][k] * vecB[k][j] % MOD) % MOD;
             }
@@ -48,18 +52,19 @@ vector <vector <int>> Pow(vector <vector <int>> vecA, int k) {
 
 void Solve() {
     int n; cin >> n;
-    vector <int> vecA(n + 1), vecI(1e4 + 1);
+    vecValue.resize(n + 1);
+    vector <int> vecI(1e4 + 1);
     for (int i = 1; i <= n; ++i) {
-        cin >> vecA[i];
+        cin >> vecValue[i];
         // Lưu lại chỉ số i của giá trị a[i]
-        vecI[vecA[i]] = i;
+        vecI[vecValue[i]] = i;
     }
 
     // Xây dựng ma trận G ban đầu: G[i][j] = 1 nếu có cạnh
     vector <vector <int>> vecG(n + 1, vector <int> (n + 1, 0));
     for (int i = 1; i <= n; ++i) {
         for (int j = 1; j <= n; ++j) {
-            if (vecA[i] < vecA[j] && __gcd(vecA[i], vecA[j]) == 1) {
+            if (vecValue[i] < vecValue[j] && __gcd(vecValue[i], vecValue[j]) == 1) {
                 vecG[i][j] = 1;
             }
         }
