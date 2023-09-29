@@ -45,7 +45,7 @@ vector <vector <int>> Pow(vector <vector <int>> vecA, int k) {
 
 void Solve() {
     int n; cin >> n;
-    vector <int> vecA(n);
+    vector <int> vecA(n + 1);
     for (int i = 1; i <= n; ++i) {
         cin >> vecA[i];
     }

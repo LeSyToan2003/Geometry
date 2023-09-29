@@ -48,7 +48,7 @@ vector <vector <int>> Pow(vector <vector <int>> vecA, int k) {
 
 void Solve() {
     int n; cin >> n;
-    vector <int> vecA(n), vecI(1e4 + 1);
+    vector <int> vecA(n + 1), vecI(1e4 + 1);
     for (int i = 1; i <= n; ++i) {
         cin >> vecA[i];
         // Lưu lại chỉ số i của giá trị a[i]
