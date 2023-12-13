@@ -1,1 +1,0 @@
-https://oj.vnoi.info/problem/fc131_dispoint

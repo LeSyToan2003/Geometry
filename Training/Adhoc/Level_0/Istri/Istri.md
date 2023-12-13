@@ -1,1 +1,0 @@
-https://oj.vnoi.info/problem/fcb048_istri
